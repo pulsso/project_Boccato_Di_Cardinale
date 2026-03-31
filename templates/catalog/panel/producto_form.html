@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ titulo }} · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card" style="max-width:700px;">
+  <div class="pn-section-title">
+    <h2>{{ titulo }}</h2>
+    <a href="{% url 'catalog:panel_productos' %}" class="pn-btn-outline">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+
+  {% if producto and producto.image %}
+  <div style="margin-bottom:18px;">
+    <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;
+       text-transform:uppercase;color:var(--bc-muted);margin-bottom:8px;">
+      Imagen actual
+    </p>
+    <img src="{{ producto.image.url }}"
+         style="height:100px;border-radius:3px;border:1px solid rgba(212,175,55,0.2);">
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="pn-form-group">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}
+        <p style="font-size:11px;color:var(--bc-muted);margin-top:4px;">
+          {{ field.help_text }}
+        </p>
+      {% endif %}
+      {% for error in field.errors %}
+        <p style="font-size:11px;color:#fca5a5;margin-top:4px;">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button type="submit" class="pn-btn-gold">
+        <i class="bi bi-check-lg"></i> Guardar
+      </button>
+      <a href="{% url 'catalog:panel_productos' %}" class="pn-btn-outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

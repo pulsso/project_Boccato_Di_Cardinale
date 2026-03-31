@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Categorías · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <div class="pn-card">
+      <div class="pn-section-title"><h2>Categorías</h2></div>
+      <table class="pn-table">
+        <thead>
+          <tr><th>Nombre</th><th>Slug</th><th>Productos</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          {% for cat in categorias %}
+          <tr>
+            <td>{{ cat.name }}</td>
+            <td style="color:var(--bc-muted);font-size:12px;">{{ cat.slug }}</td>
+            <td><span class="pn-badge pn-badge-gold">{{ cat.total_productos }}</span></td>
+            <td>
+              {% if cat.active %}
+                <span class="pn-badge pn-badge-green">Activa</span>
+              {% else %}
+                <span class="pn-badge pn-badge-red">Inactiva</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" style="text-align:center;color:var(--bc-muted);padding:24px;">
+              Sin categorías
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="pn-card">
+      <div class="pn-section-title"><h2>Nueva Categoría</h2></div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="pn-form-group">
+          <label>Nombre de la categoría</label>
+          <input type="text" name="nombre"
+                 placeholder="Ej: Chocolates Importados" required>
+        </div>
+        <button type="submit" class="pn-btn-gold">
+          <i class="bi bi-plus-lg"></i> Crear Categoría
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

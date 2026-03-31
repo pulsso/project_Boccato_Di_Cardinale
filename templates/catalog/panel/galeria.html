@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Galería · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card">
+  <div class="pn-section-title">
+    <h2>Galería de Imágenes</h2>
+    <a href="{% url 'catalog:panel_galeria_crear' %}" class="pn-btn-gold">
+      <i class="bi bi-plus-lg"></i> Subir Foto
+    </a>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+    {% for foto in fotos %}
+    <div style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.12);
+                border-radius:4px;overflow:hidden;">
+      <div style="position:relative;">
+        <img src="{{ foto.display_image_url }}"
+             style="width:100%;height:150px;object-fit:cover;display:block;filter:brightness(0.85);">
+        <div style="position:absolute;top:8px;left:8px;">
+          <span class="pn-badge {% if foto.activa %}pn-badge-green{% else %}pn-badge-red{% endif %}">
+            {% if foto.activa %}Activa{% else %}Inactiva{% endif %}
+          </span>
+        </div>
+      </div>
+      <div style="padding:12px;">
+        <p style="font-family:var(--bc-serif);font-size:13px;
+           color:var(--bc-cream);margin:0 0 3px;">{{ foto.titulo }}</p>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;
+           text-transform:uppercase;color:var(--bc-gold);margin:0 0 10px;">
+          {{ foto.get_seccion_display }}
+        </p>
+        <form method="post"
+              action="{% url 'catalog:panel_galeria_eliminar' foto.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="pn-btn-danger"
+                  style="padding:4px 10px;font-size:10px;width:100%;justify-content:center;"
+                  onclick="return confirm('¿Eliminar foto?')">
+            <i class="bi bi-trash"></i> Eliminar
+          </button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div style="grid-column:1/-1;">
+      <div class="pn-empty">
+        <div style="font-size:2.5rem;color:var(--bc-gold);opacity:0.3;">
+          <i class="bi bi-images"></i>
+        </div>
+        <p>Sin fotos en la galería aún.<br>
+        <small>Sube imágenes para la página Terraza &amp; Bar.</small></p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

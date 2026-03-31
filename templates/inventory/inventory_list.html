@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Inventario — CosmoStore{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-4"><i class="bi bi-boxes"></i> Control de Inventario</h2>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Producto</th>
+        <th>Categoría</th>
+        <th>Stock</th>
+        <th>Precio</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" width="40" class="rounded">
+            {% endif %}
+            {{ product.name }}
+          </div>
+        </td>
+        <td>{{ product.category.name }}</td>
+        <td>
+          {% if product.stock == 0 %}
+          <span class="badge bg-danger">Sin stock</span>
+          {% elif product.stock <= 5 %}
+          <span class="badge bg-warning text-dark">{{ product.stock }} — Bajo</span>
+          {% else %}
+          <span class="badge bg-success">{{ product.stock }}</span>
+          {% endif %}
+        </td>
+        <td>${{ product.price }}</td>
+        <td>
+          {% if product.available %}
+          <span class="badge bg-success">Disponible</span>
+          {% else %}
+          <span class="badge bg-secondary">No disponible</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'inventory:stock_movement' product.id %}" class="btn btn-sm btn-outline-dark">
+            <i class="bi bi-arrow-left-right"></i> Movimiento
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

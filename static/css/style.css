@@ -1,0 +1,59 @@
+/* CosmoStore — style.css */
+
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Product card */
+.product-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
+/* Product image uniform size */
+.product-img {
+  height: 220px;
+  object-fit: cover;
+}
+
+/* Form inputs */
+input[type="text"], input[type="email"], input[type="number"],
+input[type="password"], select, textarea {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #212529;
+  box-shadow: 0 0 0 3px rgba(33,37,41,0.1);
+}
+
+/* Navbar */
+.navbar-brand {
+  letter-spacing: -0.5px;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid #333;
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+}
+
+/* Tables */
+.table th {
+  font-weight: 600;
+}

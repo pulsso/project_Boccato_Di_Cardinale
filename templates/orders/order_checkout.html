@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Checkout | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .dispatch-panel {
+    border: 1px solid rgba(37,99,235,0.35);
+    border-radius: 8px;
+    background: rgba(37,99,235,0.08);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.12) inset;
+  }
+  .dispatch-card {
+    min-height: 320px;
+    border-radius: 6px;
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.96));
+    color: #dbeafe;
+    border: 1px solid rgba(147,197,253,0.16);
+  }
+  .dispatch-card-label {
+    color: #93c5fd;
+    font-family: var(--bc-sans);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .dispatch-card-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+</style>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <h2 class="fw-bold mb-4"><i class="bi bi-bag-check"></i> Checkout de la tienda</h2>
+    <div class="alert alert-warning">
+      El pedido minimo para despacho es de <strong>${{ minimum_order }}</strong>. En esta etapa se muestra el IVA y el cobro estimado de despacho.
+    </div>
+    <form method="post" class="card p-4" id="checkout-form" autocomplete="off" data-fresh-checkout="{% if fresh_checkout %}true{% else %}false{% endif %}">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="zone">Zona</label>
+          <select class="form-select" id="zone" name="zone">
+            <option value="" {% if not zone %}selected{% endif %}>Selecciona una zona</option>
+            {% for value, label in zone_choices %}
+            <option value="{{ value }}" {% if zone == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="sector">Sector</label>
+          <select class="form-select" id="sector" name="sector">
+            <option value="" {% if not sector %}selected{% endif %}>Selecciona un sector</option>
+            {% for value, label in sector_choices %}
+            <option value="{{ value }}" {% if sector == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="mb-3 mt-3">
+        <label class="form-label" for="shipping_address">Direccion de envio</label>
+        <textarea class="form-control" id="shipping_address" name="shipping_address" rows="4" placeholder="Comuna, calle, numero, referencia">{{ shipping_address|default:'' }}</textarea>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="delivery_method">Tipo de despacho</label>
+          <select class="form-select" id="delivery_method" name="delivery_method">
+            <option value="internal" {% if delivery_method == 'internal' %}selected{% endif %}>Sistema propio</option>
+            <option value="external" {% if delivery_method == 'external' %}selected{% endif %}>Delivery externo</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="delivery_distance_km">Distancia aproximada desde sucursal (km)</label>
+          <input class="form-control" id="delivery_distance_km" name="delivery_distance_km" type="number" step="0.1" min="0" value="{{ delivery_distance_km|default:'' }}" readonly>
+          <div class="form-text">Sobre 10 km el despacho interno suma $3.000 y luego $1.200 por cada km adicional. El externo usa un 12% del pedido.</div>
+        </div>
+      </div>
+      <input type="hidden" id="destination_latitude" name="destination_latitude" value="">
+      <input type="hidden" id="destination_longitude" name="destination_longitude" value="">
+      <div class="mb-3 mt-3">
+        <label class="form-label" for="notes">Notas del pedido</label>
+        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Horario de entrega, porteria, referencias">{{ notes|default:'' }}</textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary">Volver al carrito</a>
+        <button type="submit" class="btn btn-primary">
+          Crear orden y pasar a transferencia
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card p-4 mb-3">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--bc-gold);font-family:var(--bc-sans);margin-bottom:10px;">
+        Resumen del pedido
+      </div>
+      {% for item in items %}
+      <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color:rgba(212,175,55,0.08)!important;">
+        <div>
+          <div>{{ item.product.name }}</div>
+          <small style="color:var(--bc-muted);">Cantidad: {{ item.quantity }}</small>
+        </div>
+        <div>${{ item.subtotal|floatformat:0 }}</div>
+      </div>
+      {% endfor %}
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <span>Neto</span>
+        <strong>${{ preview.get_net_total|floatformat:0 }}</strong>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span>IVA 19%</span>
+        <strong>${{ preview.get_tax_amount|floatformat:0 }}</strong>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span>Despacho estimado</span>
+        <strong id="delivery-fee-value">${{ preview.get_delivery_fee|floatformat:0 }}</strong>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span>Distancia referencial</span>
+        <strong id="distance-display">{% if delivery_distance_km %}{{ delivery_distance_km }} km{% else %}Pendiente{% endif %}</strong>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+        <strong>Total estimado</strong>
+        <strong style="color:var(--bc-gold);font-size:1.2rem;" id="grand-total-value">${{ preview.get_grand_total|floatformat:0 }}</strong>
+      </div>
+    </div>
+
+    <div class="dispatch-panel p-3">
+      <div class="dispatch-card-label">Despacho referencial</div>
+      <div class="dispatch-card">
+        <div class="dispatch-card-label">Sucursal de origen</div>
+        <div class="dispatch-card-value">{{ store_origin_address }}</div>
+        <hr style="border-color:rgba(147,197,253,0.18);">
+        <div class="dispatch-card-label">Sector seleccionado</div>
+        <div class="dispatch-card-value" id="sector-display">{% if sector %}{{ sector }}{% else %}Pendiente{% endif %}</div>
+        <div class="dispatch-card-label mt-4">Distancia aproximada</div>
+        <div class="dispatch-card-value" id="approx-distance-display">{% if approximate_distance_km %}{{ approximate_distance_km|floatformat:1 }} km{% else %}Pendiente{% endif %}</div>
+        <div class="small mt-3" id="dispatch-status" style="color:#bfdbfe;">
+          La distancia se estima por sector para evitar costos de Google Maps. El valor final puede ajustarse segun la direccion exacta y el tipo de despacho.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ sector_choices|json_script:"sector-choices-data" }}
+<script>
+  (function() {
+    const sectorDistanceMap = {
+      'las-condes': 12.0,
+      'providencia': 7.0,
+      'nunoa': 8.0,
+      'vitacura': 13.0,
+      'la-reina': 11.0,
+      'santiago-centro': 4.0,
+      'maipu': 18.0,
+      'puente-alto': 24.0,
+      'san-miguel': 9.0,
+      'la-florida': 16.0
+    };
+    const sectorChoices = JSON.parse(document.getElementById('sector-choices-data').textContent);
+    const sectorSelect = document.getElementById('sector');
+    const deliveryMethod = document.getElementById('delivery_method');
+    const distanceInput = document.getElementById('delivery_distance_km');
+    const distanceNode = document.getElementById('distance-display');
+    const approxDistanceNode = document.getElementById('approx-distance-display');
+    const feeNode = document.getElementById('delivery-fee-value');
+    const totalNode = document.getElementById('grand-total-value');
+    const sectorNode = document.getElementById('sector-display');
+    const statusNode = document.getElementById('dispatch-status');
+    const netTotal = {{ preview.get_net_total|floatformat:0 }};
+    const taxTotal = {{ preview.get_tax_amount|floatformat:0 }};
+
+    function sectorLabel(value) {
+      const found = sectorChoices.find((item) => item[0] === value);
+      return found ? found[1] : 'Pendiente';
+    }
+
+    function formatMoney(value) {
+      return '$' + Math.round(value).toString();
+    }
+
+    function updateEstimate() {
+      const sector = sectorSelect.value;
+      const km = sectorDistanceMap[sector] || 0;
+      let fee = 0;
+
+      if (km > 0) {
+        distanceInput.value = km.toFixed(1);
+        distanceNode.textContent = `${km.toFixed(1)} km`;
+        approxDistanceNode.textContent = `${km.toFixed(1)} km`;
+      } else {
+        distanceInput.value = '';
+        distanceNode.textContent = 'Pendiente';
+        approxDistanceNode.textContent = 'Pendiente';
+      }
+
+      if (deliveryMethod.value === 'internal' && km > 10) {
+        fee = 3000 + Math.max(0, Math.ceil(km - 10) * 1200);
+      } else if (deliveryMethod.value === 'external') {
+        fee = Math.round(netTotal * 0.12);
+      }
+
+      sectorNode.textContent = sectorLabel(sector);
+      feeNode.textContent = formatMoney(fee);
+      totalNode.textContent = formatMoney(netTotal + taxTotal + fee);
+      statusNode.textContent = km > 0
+        ? `Referencia desde sucursal a ${sectorLabel(sector)}: ${km.toFixed(1)} km aproximados.`
+        : 'Selecciona un sector para estimar distancia y despacho.';
+    }
+
+    sectorSelect.addEventListener('change', updateEstimate);
+    deliveryMethod.addEventListener('change', updateEstimate);
+
+    const form = document.getElementById('checkout-form');
+    if (form && form.dataset.freshCheckout === 'true') {
+      window.addEventListener('pageshow', function() {
+        ['shipping_address', 'notes', 'delivery_distance_km', 'destination_latitude', 'destination_longitude'].forEach((fieldId) => {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.value = '';
+          }
+        });
+        document.getElementById('zone').value = '';
+        document.getElementById('sector').value = '';
+        document.getElementById('delivery_method').value = 'internal';
+        updateEstimate();
+      });
+    }
+
+    updateEstimate();
+  })();
+</script>
+{% endblock %}

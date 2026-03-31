@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Mis Ordenes | Boccato{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-4"><i class="bi bi-bag-check"></i> Mis Ordenes</h2>
+
+{% if orders %}
+<div class="table-responsive">
+  <table class="table">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th>Pago</th>
+        <th>Total</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in orders %}
+      <tr>
+        <td>#{{ row.instance.id }}</td>
+        <td>{{ row.instance.created_at|date:"d/m/Y H:i" }}</td>
+        <td><span class="badge bg-secondary">{{ row.instance.get_status_display }}</span></td>
+        <td>
+          {% if row.payment and row.payment.status == 'completed' %}
+          <span class="badge bg-success">Aprobado</span>
+          {% elif row.payment and row.payment.status == 'failed' %}
+          <span class="badge bg-danger">Rechazado</span>
+          {% else %}
+          <span class="badge bg-warning text-dark">Pendiente</span>
+          {% endif %}
+        </td>
+        <td class="fw-semibold">${{ row.instance.get_grand_total|floatformat:0 }}</td>
+        <td>
+          <a href="{% url 'orders:order_detail' row.instance.id %}" class="btn btn-sm btn-outline-dark">Ver</a>
+          <a href="{% url 'orders:order_ticket' row.instance.id %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-file-pdf"></i> PDF
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-inbox fs-1"></i>
+  <p class="mt-3">No tienes ordenes aun.</p>
+  <a href="{% url 'catalog:product_list' %}" class="btn btn-dark">Ir a la tienda</a>
+</div>
+{% endif %}
+{% endblock %}

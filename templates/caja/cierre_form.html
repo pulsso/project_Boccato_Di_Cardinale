@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Solicitar Cierre de Caja{% endblock %}
+
+{% block content %}
+<style>
+  .cj-card { background:var(--bc-surface);border:1px solid rgba(212,175,55,0.18);border-radius:4px;padding:28px;max-width:640px; }
+  .cj-title { font-family:var(--bc-serif);font-size:22px;font-weight:400;color:var(--bc-cream);margin:0 0 20px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.1); }
+  .cj-group { margin-bottom:14px; }
+  .cj-group label { display:block;font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin-bottom:6px; }
+  .cj-group input, .cj-group textarea { width:100%;background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.2);color:var(--bc-cream);border-radius:2px;padding:10px 14px;font-family:var(--bc-sans);font-size:14px; }
+  .cj-group input:focus { outline:none;border-color:var(--bc-gold); }
+  .cj-resumen { background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:3px;padding:16px 18px;margin-bottom:20px; }
+  .cj-resumen p { font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);margin:4px 0;display:flex;justify-content:space-between; }
+  .cj-resumen p span { color:var(--bc-gold);font-family:var(--bc-serif); }
+  .cj-btn { background:var(--bc-gold);color:var(--bc-bg);font-family:var(--bc-sans);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:12px 28px;border:none;border-radius:2px;cursor:pointer; }
+  .cj-btn:hover { background:var(--bc-gold-dim); }
+  .cj-info { background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:3px;padding:12px 16px;margin-bottom:18px; }
+  .cj-info p { font-family:var(--bc-sans);font-size:12px;color:var(--bc-muted);margin:0; }
+</style>
+
+<div style="margin-bottom:20px;">
+  <a href="{% url 'caja:dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;">← Volver a Caja</a>
+</div>
+
+<div class="cj-card">
+  <h1 class="cj-title">Solicitar Cierre de Caja</h1>
+
+  <div class="cj-info">
+    <p><i class="bi bi-info-circle me-2"></i>El cierre debe ser autorizado por el Tesorero. Los montos se calcularon automáticamente desde los pagos de esta apertura.</p>
+  </div>
+
+  <!-- Resumen de pagos -->
+  <div class="cj-resumen">
+    <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--bc-gold);margin-bottom:10px;">Resumen calculado automáticamente</p>
+    <p>Efectivo <span>${{ totales.monto_efectivo|floatformat:0 }}</span></p>
+    <p>Tarjeta Crédito <span>${{ totales.monto_tarjeta_credito|floatformat:0 }}</span></p>
+    <p>Tarjeta Débito <span>${{ totales.monto_tarjeta_debito|floatformat:0 }}</span></p>
+    <p>Transferencias <span>${{ totales.monto_transferencia|floatformat:0 }}</span></p>
+    <p>Propinas <span>${{ totales.monto_propinas|floatformat:0 }}</span></p>
+    <p style="border-top:1px solid rgba(212,175,55,0.15);margin-top:8px;padding-top:8px;font-weight:500;">
+      Total esperado <span style="font-size:18px;">${{ total_esperado|floatformat:0 }}</span>
+    </p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="cj-group">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}<p style="font-size:11px;color:#fca5a5;margin-top:4px;">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="cj-btn"><i class="bi bi-send me-2"></i>Enviar Solicitud de Cierre</button>
+  </form>
+</div>
+{% endblock %}

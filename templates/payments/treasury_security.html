@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Seguridad Tesoreria | Boccato{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card p-4">
+      <h2 class="fw-bold mb-3">Clave de aprobacion tesoreria</h2>
+      <p class="text-muted">
+        Esta clave se guarda encriptada y se solicita al aprobar o rechazar pagos por transferencia.
+      </p>
+
+      <div class="alert alert-light border">
+        {% if security_settings.has_code %}
+        Clave activa. Ultima actualizacion: {{ security_settings.updated_at|date:"d/m/Y H:i" }}.
+        {% else %}
+        Aun no existe una clave configurada.
+        {% endif %}
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" for="new_code">Nueva clave</label>
+          <input class="form-control" id="new_code" name="new_code" type="password" minlength="6" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="confirm_code">Confirmar clave</label>
+          <input class="form-control" id="confirm_code" name="confirm_code" type="password" minlength="6" required>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-dark" type="submit">Guardar clave</button>
+          <a class="btn btn-outline-secondary" href="{% url 'caja:tesorero_dashboard' %}">Volver</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

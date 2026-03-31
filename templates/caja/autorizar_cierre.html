@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Autorizar Cierre{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;">
+  <a href="{% url 'caja:tesorero_dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;display:block;margin-bottom:20px;">← Volver al Panel Tesorero</a>
+
+  <div style="background:var(--bc-surface);border:1px solid rgba(212,175,55,0.18);border-radius:4px;padding:28px;">
+    <h1 style="font-family:var(--bc-serif);font-size:22px;font-weight:400;color:var(--bc-cream);margin:0 0 20px;">Autorizar Cierre de Caja</h1>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(212,175,55,0.1);">
+      <div>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Cajero</p>
+        <p style="font-family:var(--bc-sans);font-size:14px;color:var(--bc-cream);margin:0;">{{ cierre.cajero.get_full_name|default:cierre.cajero.username }}</p>
+      </div>
+      <div>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Solicitado</p>
+        <p style="font-family:var(--bc-sans);font-size:14px;color:var(--bc-cream);margin:0;">{{ cierre.solicitado_at|date:"d/m/Y H:i" }}</p>
+      </div>
+    </div>
+
+    <!-- Montos -->
+    <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:3px;padding:16px 18px;margin-bottom:20px;">
+      {% for label, valor in cierre_detalle.items %}
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(212,175,55,0.06);">
+        <span style="font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);">{{ label }}</span>
+        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-gold);">${{ valor|floatformat:0 }}</span>
+      </div>
+      {% empty %}
+      <div style="display:flex;justify-content:space-between;padding:5px 0;">
+        <span style="font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);">Efectivo</span>
+        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-gold);">${{ cierre.monto_efectivo|floatformat:0 }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;">
+        <span style="font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);">Tarjeta Crédito</span>
+        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-gold);">${{ cierre.monto_tarjeta_credito|floatformat:0 }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;">
+        <span style="font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);">Tarjeta Débito</span>
+        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-gold);">${{ cierre.monto_tarjeta_debito|floatformat:0 }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;">
+        <span style="font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);">Transferencias</span>
+        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-gold);">${{ cierre.monto_transferencia|floatformat:0 }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid rgba(212,175,55,0.15);margin-top:6px;">
+        <span style="font-family:var(--bc-sans);font-size:13px;font-weight:500;color:var(--bc-cream);">TOTAL</span>
+        <span style="font-family:var(--bc-serif);font-size:20px;color:var(--bc-gold);">${{ cierre.get_total|floatformat:0 }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if cierre.notas %}
+    <div style="margin-bottom:20px;">
+      <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Notas del cajero</p>
+      <p style="font-family:var(--bc-serif);font-style:italic;font-size:14px;color:var(--bc-muted);margin:0;">{{ cierre.notas }}</p>
+    </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin-bottom:7px;">Motivo del rechazo (solo si rechazas)</label>
+        <textarea name="motivo" rows="3" placeholder="Opcional si autorizas..."
+                  style="width:100%;background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.2);color:var(--bc-cream);border-radius:2px;padding:10px 14px;font-family:var(--bc-sans);font-size:13px;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button name="accion" value="autorizar" type="submit"
+                style="flex:1;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#86efac;font-family:var(--bc-sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:2px;cursor:pointer;">
+          <i class="bi bi-check-lg me-1"></i> Autorizar Cierre
+        </button>
+        <button name="accion" value="rechazar" type="submit"
+                style="flex:1;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:var(--bc-sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:2px;cursor:pointer;">
+          <i class="bi bi-x-lg me-1"></i> Rechazar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

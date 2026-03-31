@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Campañas · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card">
+  <div class="pn-section-title">
+    <h2>Campañas &amp; Banners</h2>
+    <a href="{% url 'catalog:panel_campana_crear' %}" class="pn-btn-gold">
+      <i class="bi bi-plus-lg"></i> Nueva Campaña
+    </a>
+  </div>
+
+  <table class="pn-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Título</th>
+        <th>Tipo</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Estado</th>
+        <th>Creada por</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in campanas %}
+      <tr>
+        <td>
+          {% if c.imagen %}
+            <img src="{{ c.imagen.url }}" class="pn-img-thumb">
+          {% else %}
+            <div class="pn-img-placeholder">
+              <i class="bi bi-megaphone"></i>
+            </div>
+          {% endif %}
+        </td>
+        <td>
+          {{ c.titulo }}
+          <br>
+          <span style="font-size:11px;color:var(--bc-muted);">
+            {{ c.subtitulo|truncatechars:40 }}
+          </span>
+        </td>
+        <td><span class="pn-badge pn-badge-blue">{{ c.get_tipo_display }}</span></td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ c.fecha_inicio|date:"d/m/Y" }}
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ c.fecha_fin|date:"d/m/Y" }}
+        </td>
+        <td>
+          {% if c.activa and c.fecha_fin >= hoy %}
+            <span class="pn-badge pn-badge-green">Activa</span>
+          {% elif c.fecha_fin < hoy %}
+            <span class="pn-badge pn-badge-red">Vencida</span>
+          {% else %}
+            <span class="pn-badge pn-badge-red">Inactiva</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ c.creada_por.username|default:"—" }}
+        </td>
+        <td>
+          <form method="post"
+                action="{% url 'catalog:panel_campana_eliminar' c.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="pn-btn-danger"
+                    style="padding:5px 12px;font-size:10px;"
+                    onclick="return confirm('¿Eliminar campaña?')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8">
+          <div class="pn-empty">
+            <div style="font-size:2rem;color:var(--bc-gold);opacity:0.3;">
+              <i class="bi bi-megaphone"></i>
+            </div>
+            <p>Sin campañas creadas.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

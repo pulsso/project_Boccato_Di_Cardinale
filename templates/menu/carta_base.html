@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% block carta_title %}Carta{% endblock %} &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+  .carta-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+  .carta-nav a { border: 1px solid rgba(212,175,55,0.2); color: var(--bc-muted); font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 7px 16px; border-radius: 2px; text-decoration: none; transition: all 0.2s; }
+  .carta-nav a:hover, .carta-nav a.active { border-color: var(--bc-gold); color: var(--bc-gold); background: var(--bc-gold-glow); }
+
+  .carta-header { margin-bottom: 36px; padding-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.12); }
+  .carta-header h1 { font-family: var(--bc-serif); font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 400; color: var(--bc-cream); margin: 0 0 6px; }
+  .carta-header h1 span { color: var(--bc-gold); font-style: italic; }
+  .carta-header p { font-family: var(--bc-serif); font-style: italic; font-size: 15px; color: var(--bc-muted); margin: 0; }
+
+  .carta-seccion { margin-bottom: 48px; }
+  .carta-seccion-title { font-family: var(--bc-sans); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--bc-gold); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(212,175,55,0.1); display: flex; align-items: center; gap: 10px; }
+  .carta-seccion-title::before { content: '✦'; font-size: 8px; }
+
+  .carta-item { display: flex; align-items: flex-start; gap: 16px; padding: 18px 0; border-bottom: 1px solid rgba(212,175,55,0.06); transition: background 0.2s; }
+  .carta-item:last-child { border-bottom: none; }
+  .carta-item:hover { background: rgba(212,175,55,0.02); margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+
+  .carta-item-img { width: 80px; height: 80px; object-fit: cover; border-radius: 3px; flex-shrink: 0; border: 1px solid rgba(212,175,55,0.12); filter: brightness(0.9); }
+  .carta-item-img-placeholder { width: 80px; height: 80px; background: var(--bc-surface2); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: 0.5; border: 1px solid rgba(212,175,55,0.1); }
+
+  .carta-item-info { flex: 1; }
+  .carta-item-name { font-family: var(--bc-serif); font-size: 16px; font-weight: 600; color: var(--bc-cream); margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .carta-item-badge { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); padding: 2px 8px; border-radius: 2px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25); color: var(--bc-gold); }
+  .carta-item-desc { font-family: var(--bc-serif); font-style: italic; font-size: 13px; color: var(--bc-muted); margin: 0 0 6px; line-height: 1.5; }
+  .carta-item-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .carta-item-meta span { font-family: var(--bc-sans); font-size: 11px; color: #5a4a3a; letter-spacing: 0.5px; }
+  .carta-item-meta span strong { color: var(--bc-muted); }
+
+  .carta-item-precio { font-family: var(--bc-serif); font-size: 18px; font-weight: 600; color: var(--bc-gold); white-space: nowrap; flex-shrink: 0; }
+
+  .carta-empty { background: rgba(212,175,55,0.03); border: 1px dashed rgba(212,175,55,0.15); border-radius: 4px; padding: 48px 24px; text-align: center; }
+  .carta-empty p { font-family: var(--bc-serif); font-style: italic; font-size: 16px; color: var(--bc-muted); margin: 12px 0 0; }
+</style>
+
+<div class="carta-nav">
+  <a href="{% url 'menu:carta_home' %}">&larr; Carta</a>
+  <a href="{% url 'menu:carta_completa' %}">Completa</a>
+  <a href="{% url 'menu:desayuno' %}" {% if tipo == 'desayuno' %}class="active"{% endif %}>Desayuno</a>
+  <a href="{% url 'menu:brunch' %}" {% if tipo == 'brunch' %}class="active"{% endif %}>Brunch</a>
+  <a href="{% url 'menu:almuerzo' %}" {% if tipo == 'almuerzo' %}class="active"{% endif %}>Almuerzo</a>
+  <a href="{% url 'menu:cena' %}" {% if tipo == 'cena' %}class="active"{% endif %}>Cena</a>
+  <a href="{% url 'menu:terraza' %}" {% if tipo == 'terraza' %}class="active"{% endif %}>Terraza</a>
+  <a href="{% url 'menu:vinos' %}" {% if tipo == 'vinos' %}class="active"{% endif %}>Vinos</a>
+  <a href="{% url 'menu:licores' %}" {% if tipo == 'licores' %}class="active"{% endif %}>Licores</a>
+  <a href="{% url 'menu:cocteles' %}" {% if tipo == 'cocteles' %}class="active"{% endif %}>Cocteles</a>
+  <a href="{% url 'menu:catering' %}" {% if tipo == 'catering' %}class="active"{% endif %}>Catering</a>
+</div>
+
+<div class="carta-header">
+  {% block carta_header %}{% endblock %}
+</div>
+
+{% if categorias %}
+  {% block carta_content %}
+  {% for c in categorias %}
+  <div class="carta-seccion">
+    <div class="carta-seccion-title">
+      {{ c.categoria.nombre }}
+      {% if c.categoria.descripcion %}
+        <span style="font-family:var(--bc-serif);font-style:italic;font-size:13px;color:var(--bc-muted);letter-spacing:0;text-transform:none;font-weight:300;">&mdash; {{ c.categoria.descripcion }}</span>
+      {% endif %}
+    </div>
+    {% for item in c.items %}
+    <div class="carta-item">
+      {% if item.display_image_url %}
+        <img src="{{ item.display_image_url }}" class="carta-item-img" alt="{{ item.nombre }}">
+      {% else %}
+        <div class="carta-item-img-placeholder">{% block item_icon %}🍽️{% endblock %}</div>
+      {% endif %}
+      <div class="carta-item-info">
+        <div class="carta-item-name">
+          {{ item.nombre }}
+          {% if item.destacado %}<span class="carta-item-badge">✦ Chef</span>{% endif %}
+        </div>
+        {% if item.descripcion %}<p class="carta-item-desc">{{ item.descripcion }}</p>{% endif %}
+        {% if item.bodega or item.cepa or item.anno or item.origen %}
+        <div class="carta-item-meta">
+          {% if item.bodega %}<span><strong>Bodega:</strong> {{ item.bodega }}</span>{% endif %}
+          {% if item.cepa %}<span><strong>Cepa:</strong> {{ item.cepa }}</span>{% endif %}
+          {% if item.anno %}<span><strong>A&ntilde;o:</strong> {{ item.anno }}</span>{% endif %}
+          {% if item.origen %}<span><strong>Valle:</strong> {{ item.origen }}</span>{% endif %}
+          {% if item.graduacion %}<span><strong>Vol:</strong> {{ item.graduacion }}</span>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="carta-item-precio">${{ item.precio|floatformat:0 }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% endblock %}
+{% else %}
+  <div class="carta-empty">
+    <div style="font-size:2.5rem;color:var(--bc-gold);opacity:0.3;">✦</div>
+    <p>La carta est&aacute; siendo preparada.<br>
+    <small>Agrega items desde el panel administrador.</small></p>
+  </div>
+{% endif %}
+
+{% endblock %}

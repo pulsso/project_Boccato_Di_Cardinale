@@ -1,0 +1,735 @@
+{% extends "base.html" %}
+{% load static %}
+{% load menu_extras %}
+{% block title %}Carta &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+.carta-wrap {
+  --c-bg:      #faf8f4;
+  --c-surface: #ffffff;
+  --c-gold:    #b8962e;
+  --c-gold2:   #d4af37;
+  --c-text:    #1a1208;
+  --c-muted:   #6b5a3e;
+  --c-border:  rgba(180,150,46,0.18);
+  --c-serif:   'Cormorant Garamond','Georgia',serif;
+  --c-sans:    'Jost','Inter',sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  max-width: 1160px;
+  margin: -24px auto 0;
+  font-family: var(--c-serif);
+}
+
+/* ── HEADER ── */
+.carta-header {
+  text-align: center;
+  padding: 52px 32px 36px;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.carta-eyebrow {
+  font-family: var(--c-sans);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  margin-bottom: 12px;
+}
+.carta-header h1 {
+  font-family: var(--c-serif);
+  font-size: clamp(2rem,4vw,3.4rem);
+  font-weight: 400;
+  color: var(--c-text);
+  margin: 0 0 8px;
+}
+.carta-header h1 em { color: var(--c-gold); font-style: italic; }
+.carta-header p {
+  font-family: var(--c-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--c-muted);
+  margin: 0;
+}
+
+/* ── NAV STICKY ── */
+.carta-nav {
+  background: #1a1208;
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 2px solid rgba(212,175,55,0.25);
+}
+.carta-nav-logo {
+  font-family: var(--c-serif);
+  font-style: italic;
+  color: var(--c-gold2);
+  font-size: 17px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.carta-nav-link {
+  font-family: var(--c-sans);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.7);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 2px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.carta-nav-link:hover { background: rgba(212,175,55,0.15); color: #d4af37; }
+.carta-nav-tienda {
+  margin-left: auto;
+  border: 1px solid rgba(212,175,55,0.3);
+  color: var(--c-gold2) !important;
+}
+
+/* ── OFERTAS DEL DÍA ── */
+.ofertas-section {
+  background: var(--c-surface);
+  padding: 44px 36px 48px;
+  border-bottom: 2px solid var(--c-border);
+}
+.ofertas-titulo {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.ofertas-titulo .eyebrow {
+  font-family: var(--c-sans);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  display: block;
+  margin-bottom: 8px;
+}
+.ofertas-titulo h2 {
+  font-family: var(--c-serif);
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--c-text);
+  margin: 0;
+}
+
+/* 3 columnas: cards | carrusel | cards */
+.ofertas-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 260px;
+  gap: 20px;
+  align-items: start;
+}
+@media(max-width:960px) { .ofertas-grid { grid-template-columns: 1fr; } }
+
+/* Cards laterales */
+.oferta-card {
+  background: #fffdf7;
+  border: 1px solid rgba(180,150,46,0.2);
+  border-left: 3px solid var(--c-gold);
+  border-radius: 3px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.oferta-card:last-child { margin-bottom: 0; }
+.oferta-card:hover { border-color: var(--c-gold); transform: translateX(3px); }
+.oferta-card-tipo {
+  font-family: var(--c-sans);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  margin-bottom: 5px;
+}
+.oferta-card-nombre {
+  font-family: var(--c-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+.oferta-card-desc {
+  font-family: var(--c-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--c-muted);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.oferta-precios { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.oferta-precio-orig { font-family: var(--c-sans); font-size: 12px; color: #bbb; text-decoration: line-through; }
+.oferta-precio-nuevo { font-family: var(--c-serif); font-size: 19px; font-weight: 600; color: var(--c-gold); }
+.oferta-badge {
+  background: #c0392b; color: white;
+  font-family: var(--c-sans); font-size: 9px;
+  font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 7px; border-radius: 2px;
+}
+
+/* ── CARRUSEL ── */
+.carrusel-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid var(--c-border);
+  background: #f0ebe0;
+  aspect-ratio: 4/3;
+  min-height: 320px;
+}
+.carrusel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.65s cubic-bezier(.4,0,.2,1);
+}
+.carrusel-slide { min-width: 100%; position: relative; overflow: hidden; }
+.carrusel-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  filter: brightness(0.88);
+  transition: filter 0.4s;
+}
+.carrusel-slide:hover img { filter: brightness(0.95); }
+
+.carrusel-caption {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(10,8,6,0.88));
+  padding: 40px 22px 18px;
+  color: white;
+}
+.carrusel-caption-tipo {
+  font-family: var(--c-sans);
+  font-size: 9px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: #d4af37;
+  margin-bottom: 4px;
+}
+.carrusel-caption-nombre {
+  font-family: var(--c-serif);
+  font-size: 20px; font-weight: 600;
+  color: #fff; margin: 0 0 8px;
+}
+.carrusel-caption-row { display: flex; align-items: center; gap: 10px; }
+.carrusel-precio { font-family: var(--c-serif); font-size: 22px; font-weight: 600; color: #d4af37; }
+.carrusel-precio-orig { font-size: 13px; color: rgba(255,255,255,0.55); text-decoration: line-through; }
+.carrusel-desc { font-family: var(--c-serif); font-style: italic; font-size: 13px; color: rgba(255,255,255,0.75); }
+
+.carrusel-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.92); border: 1px solid var(--c-border);
+  border-radius: 50%; width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; color: var(--c-text);
+  z-index: 3; transition: background 0.2s;
+}
+.carrusel-btn:hover { background: white; }
+.carrusel-prev { left: 12px; }
+.carrusel-next { right: 12px; }
+.carrusel-dots {
+  position: absolute; bottom: 62px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 7px; z-index: 3;
+}
+.carrusel-dot {
+  width: 7px; height: 7px; background: rgba(255,255,255,0.45);
+  border-radius: 50%; cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.carrusel-dot.active { background: #d4af37; transform: scale(1.35); }
+
+/* ── ÍNDICE ── */
+.indice-section {
+  background: #1a1208;
+  padding: 40px 36px;
+}
+.indice-titulo {
+  font-family: var(--c-sans);
+  font-size: 10px; letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(212,175,55,0.6);
+  text-align: center; margin-bottom: 24px;
+}
+.indice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px,1fr));
+  gap: 2px;
+}
+.indice-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; text-decoration: none;
+  border: 1px solid rgba(212,175,55,0.08);
+  color: rgba(245,240,232,0.8);
+  transition: all 0.2s; background: rgba(255,255,255,0.02);
+}
+.indice-item:hover {
+  background: rgba(212,175,55,0.09);
+  border-color: rgba(212,175,55,0.28);
+  color: #d4af37;
+}
+.indice-icon { font-size: 20px; flex-shrink: 0; }
+.indice-info { flex: 1; min-width: 0; }
+.indice-nombre { font-family: var(--c-serif); font-size: 15px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.indice-count { font-family: var(--c-sans); font-size: 10px; color: rgba(212,175,55,0.45); letter-spacing: 1px; }
+.indice-arrow { font-size: 12px; opacity: 0.35; }
+
+/* ── SECCIONES MENÚ ── */
+.menu-sec {
+  background: var(--c-surface);
+  padding: 52px 40px;
+  border-bottom: 1px solid var(--c-border);
+}
+.menu-sec-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--c-text);
+  flex-wrap: wrap; gap: 12px;
+}
+.menu-sec-eyebrow {
+  font-family: var(--c-sans);
+  font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--c-gold);
+  display: block; margin-bottom: 5px;
+}
+.menu-sec-title {
+  font-family: var(--c-serif);
+  font-size: 32px; font-weight: 400;
+  color: var(--c-text); margin: 0;
+}
+.menu-sec-btn {
+  font-family: var(--c-sans);
+  font-size: 11px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--c-gold);
+  text-decoration: none;
+  border: 1px solid rgba(180,150,46,0.3);
+  padding: 8px 16px; border-radius: 2px;
+  transition: all 0.2s; white-space: nowrap;
+}
+.menu-sec-btn:hover { background: var(--c-gold); color: white; border-color: var(--c-gold); }
+
+/* Ítem en índice */
+.menu-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px; padding: 16px 0;
+  border-bottom: 1px solid rgba(180,150,46,0.07);
+  align-items: start;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item:hover { background: rgba(180,150,46,0.03); margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+.menu-item-nombre-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.menu-item-nombre { font-family: var(--c-serif); font-size: 17px; font-weight: 600; color: var(--c-text); }
+.menu-badge-chef { background: var(--c-gold); color: white; font-family: var(--c-sans); font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+.menu-badge-oferta { background: #c0392b; color: white; font-family: var(--c-sans); font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+.menu-item-desc { font-family: var(--c-serif); font-style: italic; font-size: 13px; color: var(--c-muted); margin: 0; line-height: 1.5; }
+.menu-item-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5px; }
+.menu-meta-tag { font-family: var(--c-sans); font-size: 11px; color: var(--c-muted); }
+.menu-meta-tag strong { color: var(--c-text); }
+.menu-precio-col { text-align: right; padding-top: 3px; min-width: 100px; }
+.menu-precio { font-family: var(--c-serif); font-size: 19px; font-weight: 600; color: var(--c-text); display: block; white-space: nowrap; }
+.menu-precio-orig { font-family: var(--c-sans); font-size: 12px; color: #bbb; text-decoration: line-through; display: block; text-align: right; }
+.menu-precio-oferta { font-family: var(--c-serif); font-size: 19px; font-weight: 600; color: #c0392b; display: block; }
+
+.menu-empty { text-align: center; padding: 32px; border: 1px dashed var(--c-border); border-radius: 3px; }
+.menu-empty p { font-family: var(--c-serif); font-style: italic; color: var(--c-muted); margin: 8px 0 0; }
+
+/* ── IMPRIMIR ── */
+@media print {
+  .carta-nav, .indice-section { display: none; }
+  .ofertas-section { display: none; }
+  .menu-sec-btn { display: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+
+<div class="carta-wrap">
+
+  <!-- HEADER -->
+  <div class="carta-header">
+    <div class="carta-eyebrow">✦ Boutique Gourmet &middot; Santiago de Chile &middot; Desde 1987 ✦</div>
+    <h1><em>Boccato</em> di Cardinale</h1>
+    <p>Una selecci&oacute;n curada de sabores — del desayuno a la medianoche</p>
+  </div>
+
+  <!-- NAV STICKY -->
+  <nav class="carta-nav">
+    <span class="carta-nav-logo">Boccato</span>
+    {% for seccion in secciones %}
+    <a href="#sec-{{ seccion.tipo }}" class="carta-nav-link">{{ seccion.icon }} {{ seccion.label }}</a>
+    {% endfor %}
+    <a href="{% url 'menu:carta_completa' %}" class="carta-nav-link">Carta completa</a>
+    <a href="{% url 'catalog:product_list' %}" class="carta-nav-link carta-nav-tienda">Tienda →</a>
+  </nav>
+
+  <!-- ═══ OFERTAS DEL DÍA ═══ -->
+  <div class="ofertas-section">
+    <div class="ofertas-titulo">
+      <span class="eyebrow">✦ Destacados de Hoy ✦</span>
+      <h2>Ofertas del D&iacute;a</h2>
+    </div>
+
+    <div class="ofertas-grid">
+
+      <!-- IZQUIERDA -->
+      <div>
+        {% for item in ofertas_izq %}
+        <a href="#sec-{{ item.categoria.tipo }}" class="oferta-card">
+          <div class="oferta-card-tipo">{{ item.categoria.get_tipo_display }}</div>
+          <div class="oferta-card-nombre">{{ item.nombre }}</div>
+          {% if item.descripcion %}<div class="oferta-card-desc">{{ item.descripcion|truncar_descripcion:65 }}</div>{% endif %}
+          <div class="oferta-precios">
+            {% if item.tiene_oferta %}
+              <span class="oferta-precio-orig">${{ item.precio|floatformat:0 }}</span>
+              <span class="oferta-precio-nuevo">${{ item.precio_oferta|floatformat:0 }}</span>
+              <span class="oferta-badge">-{{ item.descuento_porcentaje }}%</span>
+            {% else %}
+              <span class="oferta-precio-nuevo">${{ item.precio|floatformat:0 }}</span>
+            {% endif %}
+          </div>
+        </a>
+        {% empty %}
+        <!-- Placeholders cuando no hay ofertas cargadas -->
+        <a href="#sec-desayuno" class="oferta-card">
+          <div class="oferta-card-tipo">Desayuno</div>
+          <div class="oferta-card-nombre">Tostadas con Palta</div>
+          <div class="oferta-card-desc">Pan artesanal, palta, tomate cherry, aciete de oliva</div>
+          <div class="oferta-precios"><span class="oferta-precio-nuevo">$5.900</span></div>
+        </a>
+        <a href="#sec-almuerzo" class="oferta-card">
+          <div class="oferta-card-tipo">Almuerzo</div>
+          <div class="oferta-card-nombre">Risotto de Champi&ntilde;ones</div>
+          <div class="oferta-card-desc">Arroz arborio, parmesano, trufa negra</div>
+          <div class="oferta-precios">
+            <span class="oferta-precio-orig">$14.900</span>
+            <span class="oferta-precio-nuevo">$11.900</span>
+            <span class="oferta-badge">-20%</span>
+          </div>
+        </a>
+        <a href="#sec-cocteles" class="oferta-card">
+          <div class="oferta-card-tipo">C&oacute;ctel</div>
+          <div class="oferta-card-nombre">Pisco Sour Premium</div>
+          <div class="oferta-card-desc">Pisco Mistral, lim&oacute;n sutil, clara de huevo, amargo de Angostura</div>
+          <div class="oferta-precios"><span class="oferta-precio-nuevo">$6.900</span></div>
+        </a>
+        {% endfor %}
+      </div>
+
+      <!-- CENTRO: CARRUSEL con imágenes Unsplash reales -->
+      <div>
+        <div class="carrusel-wrap" id="carrusel">
+          <div class="carrusel-track" id="carrusel-track">
+
+            {% if ofertas_carrusel %}
+              {% for item in ofertas_carrusel %}
+              <div class="carrusel-slide">
+                {% if item.display_image_url %}
+                  <img src="{{ item.display_image_url }}" alt="{{ item.nombre }}" loading="lazy">
+                {% else %}
+                  <!-- Imagen Unsplash según tipo de menú -->
+                  {% if item.categoria.tipo == 'desayuno' %}
+                    <img src="https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% elif item.categoria.tipo == 'brunch' %}
+                    <img src="https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% elif item.categoria.tipo == 'almuerzo' %}
+                    <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% elif item.categoria.tipo == 'cena' %}
+                    <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% elif item.categoria.tipo == 'vinos' %}
+                    <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% elif item.categoria.tipo == 'cocteles' %}
+                    <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% else %}
+                    <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80" alt="{{ item.nombre }}" loading="lazy">
+                  {% endif %}
+                {% endif %}
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">{{ item.categoria.get_tipo_display }}</div>
+                  <div class="carrusel-caption-nombre">{{ item.nombre }}</div>
+                  {% if item.descripcion %}<div class="carrusel-desc">{{ item.descripcion|truncar_descripcion:70 }}</div>{% endif %}
+                  <div class="carrusel-caption-row" style="margin-top:8px;">
+                    {% if item.tiene_oferta %}
+                      <span class="carrusel-precio">${{ item.precio_oferta|floatformat:0 }}</span>
+                      <span class="carrusel-precio-orig">${{ item.precio|floatformat:0 }}</span>
+                    {% else %}
+                      <span class="carrusel-precio">${{ item.precio|floatformat:0 }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <!-- 6 slides con imágenes Unsplash de alta calidad cuando no hay ofertas -->
+              <div class="carrusel-slide">
+                <img src="https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=900&q=85" alt="Desayuno Gourmet" loading="eager">
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">Desayuno</div>
+                  <div class="carrusel-caption-nombre">Desayuno Gourmet</div>
+                  <div class="carrusel-desc">Caf&eacute; de especialidad, croissants artesanales, frutas frescas y mermeladas caseras</div>
+                  <div class="carrusel-caption-row" style="margin-top:8px;"><span class="carrusel-precio">desde $7.900</span></div>
+                </div>
+              </div>
+              <div class="carrusel-slide">
+                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=85" alt="Carta Almuerzo" loading="lazy">
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">Almuerzo</div>
+                  <div class="carrusel-caption-nombre">Men&uacute; del D&iacute;a</div>
+                  <div class="carrusel-desc">Cocina de mercado con ingredientes frescos y de temporada &middot; 12:00&ndash;15:30</div>
+                  <div class="carrusel-caption-row" style="margin-top:8px;"><span class="carrusel-precio">desde $9.900</span></div>
+                </div>
+              </div>
+              <div class="carrusel-slide">
+                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900&q=85" alt="Carta de Vinos" loading="lazy">
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">Carta de Vinos</div>
+                  <div class="carrusel-caption-nombre">Vinos Chilenos Seleccionados</div>
+                  <div class="carrusel-desc">Carmenère, Cabernet Sauvignon, Sauvignon Blanc &middot; Valles de Chile</div>
+                  <div class="carrusel-caption-row" style="margin-top:8px;"><span class="carrusel-precio">desde $8.900 la copa</span></div>
+                </div>
+              </div>
+              <div class="carrusel-slide">
+                <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=900&q=85" alt="Cócteles" loading="lazy">
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">Barras &amp; C&oacute;cteles</div>
+                  <div class="carrusel-caption-nombre">Pisco Sour &amp; Cocteler&iacute;a de Autor</div>
+                  <div class="carrusel-desc">Pisco Sour, Mango Sour, Ramazzotti, Espumantes y tragos de autor</div>
+                  <div class="carrusel-caption-row" style="margin-top:8px;"><span class="carrusel-precio">desde $5.900</span></div>
+                </div>
+              </div>
+              <div class="carrusel-slide">
+                <img src="https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=900&q=85" alt="Brunch" loading="lazy">
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">Brunch &amp; Once</div>
+                  <div class="carrusel-caption-nombre">Brunch del Fin de Semana</div>
+                  <div class="carrusel-desc">S&aacute;bados, domingos y festivos &middot; 11:00&ndash;16:00 hrs</div>
+                  <div class="carrusel-caption-row" style="margin-top:8px;"><span class="carrusel-precio">desde $8.900</span></div>
+                </div>
+              </div>
+              <div class="carrusel-slide">
+                <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&q=85" alt="Cena" loading="lazy">
+                <div class="carrusel-caption">
+                  <div class="carrusel-caption-tipo">Cena</div>
+                  <div class="carrusel-caption-nombre">Men&uacute; Cena de Autor</div>
+                  <div class="carrusel-desc">Gastronom&iacute;a de autor con maridaje recomendado &middot; 19:30&ndash;23:30</div>
+                  <div class="carrusel-caption-row" style="margin-top:8px;"><span class="carrusel-precio">desde $13.900</span></div>
+                </div>
+              </div>
+            {% endif %}
+
+          </div>
+          <button class="carrusel-btn carrusel-prev" onclick="moverCarrusel(-1)">&#8249;</button>
+          <button class="carrusel-btn carrusel-next" onclick="moverCarrusel(1)">&#8250;</button>
+          <div class="carrusel-dots" id="carrusel-dots"></div>
+        </div>
+      </div>
+
+      <!-- DERECHA -->
+      <div>
+        {% for item in ofertas_der %}
+        <a href="#sec-{{ item.categoria.tipo }}" class="oferta-card">
+          <div class="oferta-card-tipo">{{ item.categoria.get_tipo_display }}</div>
+          <div class="oferta-card-nombre">{{ item.nombre }}</div>
+          {% if item.descripcion %}<div class="oferta-card-desc">{{ item.descripcion|truncar_descripcion:65 }}</div>{% endif %}
+          <div class="oferta-precios">
+            {% if item.tiene_oferta %}
+              <span class="oferta-precio-orig">${{ item.precio|floatformat:0 }}</span>
+              <span class="oferta-precio-nuevo">${{ item.precio_oferta|floatformat:0 }}</span>
+              <span class="oferta-badge">-{{ item.descuento_porcentaje }}%</span>
+            {% else %}
+              <span class="oferta-precio-nuevo">${{ item.precio|floatformat:0 }}</span>
+            {% endif %}
+          </div>
+        </a>
+        {% empty %}
+        <a href="#sec-vinos" class="oferta-card">
+          <div class="oferta-card-tipo">Vino en Oferta</div>
+          <div class="oferta-card-nombre">Carmen&egrave;re Gran Reserva</div>
+          <div class="oferta-card-desc">Valle del Maipo, notas a ciruela negra y especias orientales</div>
+          <div class="oferta-precios">
+            <span class="oferta-precio-orig">$18.900</span>
+            <span class="oferta-precio-nuevo">$14.900</span>
+            <span class="oferta-badge">-21%</span>
+          </div>
+        </a>
+        <a href="#sec-brunch" class="oferta-card">
+          <div class="oferta-card-tipo">Brunch</div>
+          <div class="oferta-card-nombre">Huevos Benedictinos</div>
+          <div class="oferta-card-desc">Muffin ingl&eacute;s, jam&oacute;n serrano, salsa holandesa trufada</div>
+          <div class="oferta-precios"><span class="oferta-precio-nuevo">$8.900</span></div>
+        </a>
+        <a href="#sec-cocteles" class="oferta-card">
+          <div class="oferta-card-tipo">Espumante</div>
+          <div class="oferta-card-nombre">Espumante Brut Rosé</div>
+          <div class="oferta-card-desc">Cava espa&ntilde;ol, notas c&iacute;tricas, frambuesa y brioche</div>
+          <div class="oferta-precios"><span class="oferta-precio-nuevo">$9.900</span></div>
+        </a>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ ÍNDICE ═══ -->
+  <div class="indice-section">
+    <div class="indice-titulo">— Nuestra Carta Completa —</div>
+    <div class="indice-grid">
+      {% for seccion in secciones %}
+      <a href="#sec-{{ seccion.tipo }}" class="indice-item">
+        <span class="indice-icon">{{ seccion.icon }}</span>
+        <span class="indice-info">
+          <span class="indice-nombre">{{ seccion.label }}</span>
+          <span class="indice-count">{{ seccion.count }} preparaciones</span>
+        </span>
+        <span class="indice-arrow">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ═══ SECCIONES DEL MENÚ ═══ -->
+  {% for seccion in secciones %}
+  <div class="menu-sec" id="sec-{{ seccion.tipo }}">
+    <div class="menu-sec-header">
+      <div>
+        <span class="menu-sec-eyebrow">{{ seccion.icon }} {{ seccion.tipo|upper }}</span>
+        <h2 class="menu-sec-title">{{ seccion.label }}</h2>
+      </div>
+      {% if seccion.tipo == 'desayuno' %}<a href="{% url 'menu:desayuno' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'brunch' %}<a href="{% url 'menu:brunch' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'almuerzo' %}<a href="{% url 'menu:almuerzo' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'cena' %}<a href="{% url 'menu:cena' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'terraza' %}<a href="{% url 'menu:terraza' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'vinos' %}<a href="{% url 'menu:vinos' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'licores' %}<a href="{% url 'menu:licores' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'cocteles' %}<a href="{% url 'menu:cocteles' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'catering' %}<a href="{% url 'menu:catering' %}" class="menu-sec-btn">Carta completa →</a>
+      {% endif %}
+    </div>
+
+    {% with items_sec=destacados|get_item:seccion.tipo %}
+    {% if items_sec %}
+      {% for item in items_sec %}
+      <div class="menu-item">
+        <div>
+          <div class="menu-item-nombre-row">
+            <span class="menu-item-nombre">{{ item.nombre }}</span>
+            {% if item.destacado %}<span class="menu-badge-chef">✦ Chef</span>{% endif %}
+            {% if item.tiene_oferta %}<span class="menu-badge-oferta">Oferta</span>{% endif %}
+          </div>
+          {% if item.descripcion %}<p class="menu-item-desc">{{ item.descripcion }}</p>{% endif %}
+          {% if item.bodega or item.cepa or item.anno %}
+          <div class="menu-item-meta">
+            {% if item.bodega %}<span class="menu-meta-tag"><strong>Bodega:</strong> {{ item.bodega }}</span>{% endif %}
+            {% if item.cepa %}<span class="menu-meta-tag"><strong>Cepa:</strong> {{ item.cepa }}</span>{% endif %}
+            {% if item.anno %}<span class="menu-meta-tag"><strong>A&ntilde;o:</strong> {{ item.anno }}</span>{% endif %}
+            {% if item.origen %}<span class="menu-meta-tag"><strong>Valle:</strong> {{ item.origen }}</span>{% endif %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="menu-precio-col">
+          {% if item.tiene_oferta %}
+            <span class="menu-precio-orig">${{ item.precio|floatformat:0 }}</span>
+            <span class="menu-precio-oferta">${{ item.precio_oferta|floatformat:0 }}</span>
+          {% else %}
+            <span class="menu-precio">${{ item.precio|floatformat:0 }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      <p style="font-family:var(--c-sans);font-size:11px;color:var(--c-muted);text-align:center;margin-top:14px;letter-spacing:1px;">
+        Mostrando destacados &mdash;
+        <a href="{% url 'menu:'|add:seccion.tipo %}" style="color:var(--c-gold);text-decoration:none;">ver carta completa →</a>
+      </p>
+    {% else %}
+    <div class="menu-empty">
+      <div style="font-size:2rem;opacity:0.3;">{{ seccion.icon }}</div>
+      <p>Secci&oacute;n en preparaci&oacute;n.<br>
+      <small>Agrega items como <strong>Destacado</strong> desde el
+        <a href="{% url 'menu:panel_items' %}?tipo={{ seccion.tipo }}" style="color:var(--c-gold);">panel de men&uacute;s</a>.
+      </small></p>
+    </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% empty %}
+  <div class="menu-sec">
+    <div class="menu-empty">
+      <div style="font-size:2.5rem;opacity:0.3;">🍽️</div>
+      <p>La carta est&aacute; siendo preparada.<br>
+      <small>Agrega categorías e items desde el
+        <a href="{% url 'menu:panel_menu' %}" style="color:var(--c-gold);">panel de men&uacute;s</a>.
+      </small></p>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- FOOTER -->
+  <div style="background:#1a1208;padding:36px;text-align:center;">
+    <p style="font-family:var(--c-serif);font-style:italic;font-size:16px;color:rgba(212,175,55,0.85);margin:0 0 6px;">Boccato di Cardinale</p>
+    <p style="font-family:var(--c-sans);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(245,240,232,0.4);margin:0;">Boutique Gourmet &middot; Santiago de Chile &middot; Desde 1987</p>
+  </div>
+
+</div>
+
+<script>
+// ── CARRUSEL ────────────────────────────────────────────────
+(function() {
+  const track = document.getElementById('carrusel-track');
+  const dotsBox = document.getElementById('carrusel-dots');
+  if (!track) return;
+
+  const slides = track.querySelectorAll('.carrusel-slide');
+  const total = slides.length;
+  if (total === 0) return;
+
+  let current = 0;
+  let timer;
+
+  // Crear dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'carrusel-dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => { goTo(i); resetTimer(); });
+    dotsBox.appendChild(d);
+  });
+
+  function goTo(n) {
+    current = ((n % total) + total) % total;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    document.querySelectorAll('.carrusel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(current + 1), 4800);
+  }
+
+  window.moverCarrusel = function(dir) {
+    goTo(current + dir);
+    resetTimer();
+  };
+
+  resetTimer();
+})();
+
+// ── SCROLL SUAVE ────────────────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+});
+</script>
+
+{% endblock %}

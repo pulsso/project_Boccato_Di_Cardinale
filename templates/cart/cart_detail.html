@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Carrito | Boccato{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-4"><i class="bi bi-cart3"></i> Tu Carrito</h2>
+
+{% with items=cart.get_items %}
+{% if items %}
+<div class="alert alert-warning mb-4">
+  <strong>Pedido minimo para despacho:</strong> ${{ minimum_order }}.
+  {% if remaining_amount > 0 %}
+    Te faltan ${{ remaining_amount|floatformat:0 }} para habilitar el checkout.
+  {% else %}
+    Ya puedes continuar con la direccion de envio y pago por transferencia.
+  {% endif %}
+</div>
+
+<div class="alert alert-light border mb-4">
+  <strong>Informacion de cobro:</strong> el carrito muestra neto, IVA y total estimado.
+  El despacho propio sobre 10 km suma $3.000 y luego $1.200 por cada km adicional.
+  El delivery externo se calcula en checkout como porcentaje del pedido.
+</div>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Producto</th>
+        <th>Precio neto</th>
+        <th>Cantidad</th>
+        <th>Subtotal neto</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>
+          <div class="d-flex align-items-center gap-3">
+            {% if item.product.display_image_url %}
+            <img src="{{ item.product.display_image_url }}" width="72" height="72" class="rounded" style="object-fit:cover;flex-shrink:0;" alt="{{ item.product.name }}">
+            {% endif %}
+            <div style="min-width:0;">
+              <a href="{% url 'catalog:product_detail' item.product.slug %}" style="display:block;word-break:break-word;">
+                {{ item.product.name }}
+              </a>
+            </div>
+          </div>
+        </td>
+        <td>${{ item.product.price|floatformat:0 }}</td>
+        <td>
+          <form method="post" action="{% url 'cart:cart_update' item.product.id %}">
+            {% csrf_token %}
+            <div class="d-flex gap-1" style="width:120px;">
+              <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" class="form-control form-control-sm">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">↺</button>
+            </div>
+          </form>
+        </td>
+        <td class="fw-semibold">${{ item.subtotal|floatformat:0 }}</td>
+        <td>
+          <a href="{% url 'cart:cart_remove' item.product.id %}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash"></i>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Neto:</td>
+        <td class="fw-bold">${{ cart.get_total|floatformat:0 }}</td>
+        <td></td>
+      </tr>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">IVA 19%:</td>
+        <td class="fw-bold">${{ iva_amount|floatformat:0 }}</td>
+        <td></td>
+      </tr>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Total con IVA:</td>
+        <td class="fw-bold fs-5 text-success">${{ total_with_tax|floatformat:0 }}</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="d-flex justify-content-between mt-3">
+  <a href="{% url 'catalog:product_list' %}" class="btn btn-outline-dark">Seguir comprando</a>
+  {% if user.is_authenticated %}
+    {% if cart.get_total >= minimum_order %}
+    <a href="{% url 'orders:order_create' %}" class="btn btn-dark btn-lg">
+      <i class="bi bi-bag-check"></i> Continuar al checkout
+    </a>
+    {% else %}
+    <button class="btn btn-secondary btn-lg" disabled>
+      <i class="bi bi-lock"></i> Minimo ${{ minimum_order }}
+    </button>
+    {% endif %}
+  {% else %}
+  <a href="{% url 'accounts:login' %}" class="btn btn-dark btn-lg">
+    Inicia sesion para comprar
+  </a>
+  {% endif %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-cart-x fs-1"></i>
+  <p class="mt-3">Tu carrito esta vacio.</p>
+  <a href="{% url 'catalog:product_list' %}" class="btn btn-dark">Ver productos</a>
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}

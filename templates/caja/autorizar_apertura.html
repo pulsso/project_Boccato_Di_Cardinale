@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Autorizar Apertura{% endblock %}
+{% block content %}
+<div style="max-width:520px;">
+  <a href="{% url 'caja:tesorero_dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;display:block;margin-bottom:20px;">← Volver</a>
+  <div style="background:var(--bc-surface);border:1px solid rgba(212,175,55,0.18);border-radius:4px;padding:28px;">
+    <h1 style="font-family:var(--bc-serif);font-size:22px;font-weight:400;color:var(--bc-cream);margin:0 0 20px;">Autorizar Apertura de Caja</h1>
+    <div style="margin-bottom:16px;">
+      <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Cajero</p>
+      <p style="font-family:var(--bc-sans);font-size:15px;color:var(--bc-cream);margin:0;">{{ apertura.cajero.get_full_name|default:apertura.cajero.username }}</p>
+    </div>
+    <div style="margin-bottom:16px;">
+      <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Monto inicial</p>
+      <p style="font-family:var(--bc-serif);font-size:28px;color:var(--bc-gold);margin:0;">${{ apertura.monto_inicial|floatformat:0 }}</p>
+    </div>
+    <div style="margin-bottom:16px;">
+      <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Solicitada</p>
+      <p style="font-family:var(--bc-sans);font-size:13px;color:var(--bc-cream);margin:0;">{{ apertura.solicitada_at|date:"d/m/Y H:i" }}</p>
+    </div>
+    {% if apertura.notas %}
+    <div style="margin-bottom:20px;">
+      <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Notas</p>
+      <p style="font-family:var(--bc-serif);font-style:italic;font-size:14px;color:var(--bc-muted);margin:0;">{{ apertura.notas }}</p>
+    </div>
+    {% endif %}
+    <form method="post" style="display:flex;gap:12px;margin-top:24px;">
+      {% csrf_token %}
+      <button name="accion" value="autorizar" type="submit"
+              style="flex:1;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);color:#86efac;font-family:var(--bc-sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:2px;cursor:pointer;">
+        <i class="bi bi-check-lg me-1"></i> Autorizar
+      </button>
+      <button name="accion" value="rechazar" type="submit"
+              style="flex:1;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-family:var(--bc-sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:2px;cursor:pointer;">
+        <i class="bi bi-x-lg me-1"></i> Rechazar
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

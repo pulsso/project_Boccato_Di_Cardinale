@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Historial de Pagos &middot; Caja{% endblock %}
+{% block content %}
+<style>
+  .ts-table { width: 100%; border-collapse: collapse; }
+  .ts-table th { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(212,175,55,0.1); }
+  .ts-table td { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); padding: 11px 14px; border-bottom: 1px solid rgba(212,175,55,0.06); vertical-align: middle; }
+  .ts-table tr:last-child td { border-bottom: none; }
+  .ts-badge { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); padding: 3px 9px; border-radius: 2px; }
+  .ts-badge-green { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
+  .ts-badge-red { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+  .ts-badge-yellow { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.25); color: #fde047; }
+</style>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+  <h1 style="font-family:var(--bc-serif);font-size:22px;font-weight:400;color:var(--bc-cream);margin:0;">Historial de Pagos</h1>
+  <a href="{% url 'caja:dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;">← Caja</a>
+</div>
+
+<div style="background:var(--bc-surface);border:1px solid rgba(212,175,55,0.12);border-radius:4px;padding:20px;margin-bottom:20px;">
+  <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+    <div>
+      <label style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);display:block;margin-bottom:6px;">Fecha</label>
+      <input type="date" name="fecha" value="{{ fecha_sel }}"
+             style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:9px 14px;font-family:var(--bc-sans);font-size:13px;">
+    </div>
+    <div>
+      <label style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);display:block;margin-bottom:6px;">Método</label>
+      <select name="metodo" style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:9px 14px;font-family:var(--bc-sans);font-size:13px;">
+        <option value="">Todos</option>
+        {% for val, label in metodo_choices %}
+          <option value="{{ val }}" {% if val == metodo_sel %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" style="background:transparent;border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border-radius:2px;cursor:pointer;">
+      <i class="bi bi-funnel me-1"></i> Filtrar
+    </button>
+    {% if total_filtrado %}
+    <div style="margin-left:auto;font-family:var(--bc-serif);font-size:18px;color:var(--bc-gold);">
+      Total: ${{ total_filtrado|floatformat:0 }}
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+<div style="background:var(--bc-surface);border:1px solid rgba(212,175,55,0.12);border-radius:4px;padding:22px;">
+  <table class="ts-table">
+    <thead>
+      <tr><th>#</th><th>Mesa</th><th>Método</th><th>Total</th><th>Propina</th><th>Estado</th><th>Cajero</th><th>Fecha</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for pago in pagos %}
+      <tr>
+        <td style="color:var(--bc-gold);">#{{ pago.id }}</td>
+        <td>Mesa {{ pago.comanda.mesa.numero }}</td>
+        <td>{{ pago.get_metodo_display }}</td>
+        <td style="color:var(--bc-gold);font-family:var(--bc-serif);">${{ pago.monto_total|floatformat:0 }}</td>
+        <td style="color:var(--bc-muted);">${{ pago.propina|floatformat:0 }}</td>
+        <td>
+          {% if pago.estado == 'aprobado' %}<span class="ts-badge ts-badge-green">Aprobado</span>
+          {% elif pago.estado == 'pendiente' %}<span class="ts-badge ts-badge-yellow">Pendiente</span>
+          {% else %}<span class="ts-badge ts-badge-red">{{ pago.get_estado_display }}</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">{{ pago.cajero.get_full_name|default:pago.cajero.username|default:"—" }}</td>
+        <td style="color:var(--bc-muted);font-size:12px;">{{ pago.creado_at|date:"d/m/Y H:i" }}</td>
+        <td>
+          <a href="{% url 'caja:recibo' pago.pk %}" style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1px;color:var(--bc-gold);text-decoration:none;border:1px solid rgba(212,175,55,0.2);padding:4px 10px;border-radius:2px;">
+            Recibo
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" style="text-align:center;color:var(--bc-muted);padding:32px;font-family:var(--bc-serif);font-style:italic;">Sin pagos registrados</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

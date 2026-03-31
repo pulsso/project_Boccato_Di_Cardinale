@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Productos · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card">
+  <div class="pn-section-title">
+    <h2>Gestión de Productos</h2>
+    <a href="{% url 'catalog:panel_producto_crear' %}" class="pn-btn-gold">
+      <i class="bi bi-plus-lg"></i> Nuevo Producto
+    </a>
+  </div>
+
+  <form method="get" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ q }}"
+           placeholder="Buscar producto..."
+           style="flex:1;min-width:180px;background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:9px 14px;font-family:var(--bc-sans);font-size:13px;">
+    <select name="categoria"
+            style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:9px 14px;font-family:var(--bc-sans);font-size:13px;">
+      <option value="">Todas las categorías</option>
+      {% for cat in categorias %}
+        <option value="{{ cat.slug }}" {% if cat.slug == categoria_sel %}selected{% endif %}>
+          {{ cat.name }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="pn-btn-outline">
+      <i class="bi bi-search"></i> Buscar
+    </button>
+  </form>
+
+  <table class="pn-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Stock</th>
+        <th>Estado</th>
+        <th>Destacado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in productos %}
+      <tr>
+        <td>
+          {% if p.image %}
+            <img src="{{ p.image.url }}" class="pn-img-thumb" alt="{{ p.name }}">
+          {% else %}
+            <div class="pn-img-placeholder">✦</div>
+          {% endif %}
+        </td>
+        <td>{{ p.name }}</td>
+        <td style="color:var(--bc-muted);">{{ p.category.name }}</td>
+        <td style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:15px;">
+          ${{ p.price }}
+        </td>
+        <td>
+          {% if p.stock == 0 %}
+            <span class="pn-badge pn-badge-red">Sin stock</span>
+          {% elif p.stock <= 5 %}
+            <span class="pn-badge pn-badge-gold">{{ p.stock }}</span>
+          {% else %}
+            <span class="pn-badge pn-badge-green">{{ p.stock }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if p.available %}
+            <span class="pn-badge pn-badge-green">Activo</span>
+          {% else %}
+            <span class="pn-badge pn-badge-red">Inactivo</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if p.featured %}
+            <span class="pn-badge pn-badge-gold">✦ Destacado</span>
+          {% else %}
+            <span style="color:var(--bc-muted);font-size:12px;">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display:flex;gap:8px;">
+            <a href="{% url 'catalog:panel_producto_editar' p.pk %}"
+               class="pn-btn-outline" style="padding:5px 12px;font-size:10px;">
+              <i class="bi bi-pencil"></i> Editar
+            </a>
+            <form method="post"
+                  action="{% url 'catalog:panel_producto_eliminar' p.pk %}"
+                  style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="pn-btn-danger"
+                      style="padding:5px 12px;font-size:10px;"
+                      onclick="return confirm('¿Eliminar {{ p.name }}?')">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8">
+          <div class="pn-empty">
+            <div style="font-size:2rem;color:var(--bc-gold);opacity:0.3;">✦</div>
+            <p>No hay productos aún.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

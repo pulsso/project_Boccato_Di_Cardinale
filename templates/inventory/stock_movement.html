@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Movimiento de Stock — {{ product.name }}{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-4"><i class="bi bi-arrow-left-right"></i> Movimiento de Stock</h2>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3">{{ product.name }}</h5>
+        <p class="mb-1"><strong>Stock actual:</strong>
+          <span class="badge bg-{% if product.stock == 0 %}danger{% elif product.stock <= 5 %}warning text-dark{% else %}success{% endif %} fs-6">
+            {{ product.stock }}
+          </span>
+        </p>
+        <p class="mb-3"><strong>Precio:</strong> ${{ product.price }}</p>
+        <hr>
+        <h6 class="fw-bold mb-3">Registrar Movimiento</h6>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-dark w-100">Registrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3">Historial de Movimientos</h5>
+        {% if movements %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead class="table-dark">
+              <tr>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Motivo</th>
+                <th>Autorizado por</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mov in movements %}
+              <tr>
+                <td>
+                  <span class="badge bg-{% if mov.movement_type == 'in' or mov.movement_type == 'replacement' %}success{% elif mov.movement_type == 'loss' %}danger{% else %}secondary{% endif %}">
+                    {{ mov.get_movement_type_display }}
+                  </span>
+                </td>
+                <td>{{ mov.quantity }}</td>
+                <td>{{ mov.reason|default:"—" }}</td>
+                <td>{{ mov.authorized_by|default:"—" }}</td>
+                <td>{{ mov.created_at|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No hay movimientos registrados.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="{% url 'inventory:inventory_list' %}" class="btn btn-outline-dark mt-3">← Volver al inventario</a>
+{% endblock %}

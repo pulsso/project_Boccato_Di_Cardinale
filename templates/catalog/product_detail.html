@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ product.name }} &ndash; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+  .bc-detail-wrap { max-width: 1180px; margin: 0 auto; }
+  .bc-detail-img {
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid rgba(212,175,55,0.18);
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.94);
+  }
+  .bc-detail-placeholder {
+    width: 100%;
+    min-height: 420px;
+    border-radius: 4px;
+    border: 1px solid rgba(212,175,55,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bc-surface);
+    color: var(--bc-gold);
+    opacity: 0.5;
+    font-size: 3rem;
+  }
+  .bc-detail-tag {
+    font-family: var(--bc-sans);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--bc-gold);
+    margin-bottom: 10px;
+  }
+  .bc-detail-title {
+    font-family: var(--bc-serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--bc-cream);
+    margin-bottom: 12px;
+  }
+  .bc-detail-desc {
+    font-family: var(--bc-serif);
+    font-style: italic;
+    color: var(--bc-muted);
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+  .bc-detail-price {
+    font-family: var(--bc-serif);
+    font-size: 2rem;
+    color: var(--bc-gold);
+    margin-bottom: 6px;
+  }
+  .bc-detail-note {
+    background: rgba(212,175,55,0.06);
+    border: 1px solid rgba(212,175,55,0.16);
+    border-radius: 4px;
+    padding: 16px 18px;
+    color: var(--bc-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 18px 0 22px;
+  }
+  .bc-qty-input {
+    width: 90px;
+    text-align: center;
+    background: var(--bc-surface2);
+    color: var(--bc-cream);
+    border: 1px solid rgba(212,175,55,0.25);
+  }
+  .bc-detail-actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .bc-btn-gold {
+    background: var(--bc-gold);
+    color: var(--bc-bg);
+    border: none;
+    border-radius: 2px;
+    padding: 12px 24px;
+    font-family: var(--bc-sans);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .bc-btn-outline {
+    border: 1px solid rgba(212,175,55,0.3);
+    color: var(--bc-gold);
+    border-radius: 2px;
+    padding: 12px 24px;
+    font-family: var(--bc-sans);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: transparent;
+  }
+</style>
+
+<div class="bc-detail-wrap">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb" style="background:transparent;padding:0;">
+      <li class="breadcrumb-item"><a href="{% url 'catalog:product_list' %}" style="color:var(--bc-gold);text-decoration:none;">Tienda</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-6">
+      {% if product.display_image_url %}
+      <img src="{{ product.display_image_url }}" class="bc-detail-img" alt="{{ product.name }}">
+      {% else %}
+      <div class="bc-detail-placeholder">✦</div>
+      {% endif %}
+    </div>
+    <div class="col-lg-6">
+      <div class="bc-detail-tag">{{ product.category.name }}</div>
+      <h1 class="bc-detail-title">{{ product.name }}</h1>
+      {% if product.description %}
+      <div class="bc-detail-desc">{{ product.description }}</div>
+      {% endif %}
+      <div class="bc-detail-price">${{ product.price|floatformat:0 }}</div>
+      <div class="small text-muted">Stock disponible: {{ product.stock }}</div>
+
+      <div class="bc-detail-note">
+        El valor publicado es neto. En el carrito y checkout se informa el IVA 19%.
+        Si el despacho propio supera los 10 km se suman $3.000 y luego $1.200 por cada km adicional.
+      </div>
+
+      {% if product.available and product.stock > 0 %}
+      <form method="post" action="{% url 'cart:cart_add' product.id %}">
+        {% csrf_token %}
+        <div class="bc-detail-actions">
+          <input class="form-control bc-qty-input" type="number" name="quantity" min="1" max="{{ product.stock }}" value="1">
+          <button class="bc-btn-gold" type="submit">Agregar al carrito</button>
+          <a class="bc-btn-outline" href="{% url 'cart:cart_detail' %}">Ver carrito</a>
+        </div>
+      </form>
+      {% else %}
+      <div class="alert alert-danger mt-3">Producto sin stock por el momento.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

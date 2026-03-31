@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Orden #{{ order.id }} | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .order-map-panel {
+    border: 1px solid rgba(37,99,235,0.35);
+    border-radius: 8px;
+    background: rgba(37,99,235,0.08);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.12) inset;
+  }
+  .order-route-summary {
+    min-height: 240px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.96));
+    padding: 24px;
+    color: #dbeafe;
+    border: 1px solid rgba(147,197,253,0.16);
+  }
+</style>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h2 class="fw-bold mb-0">Orden #{{ order.id }}</h2>
+  <span class="badge bg-dark fs-6">{{ order.get_status_display }}</span>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <p class="mb-1"><strong>Fecha:</strong> {{ order.created_at|date:"d/m/Y" }}</p>
+    <p class="mb-1"><strong>Hora:</strong> {{ order.created_at|date:"H:i" }}</p>
+    <p class="mb-1"><strong>Cliente:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+    <p class="mb-1"><strong>Direccion:</strong> {{ order.shipping_address|default:"No especificada" }}</p>
+    <p class="mb-1"><strong>Folio:</strong> {{ order.folio }}</p>
+  </div>
+  <div class="col-md-6 text-md-end">
+    <p class="mb-1">
+      <strong>Pago:</strong>
+      {% if payment and payment.status == 'completed' %}
+      <span class="badge bg-success">Aprobado por tesoreria</span>
+      {% elif payment and payment.status == 'failed' %}
+      <span class="badge bg-danger">Transferencia rechazada</span>
+      {% else %}
+      <span class="badge bg-warning text-dark">Pendiente de validacion</span>
+      {% endif %}
+    </p>
+    {% if payment and payment.reference %}
+    <p class="mb-1"><strong>Referencia:</strong> {{ payment.reference }}</p>
+    {% endif %}
+    {% if payment and payment.treasury_number_display %}
+    <p class="mb-1"><strong>Boleta:</strong> {{ payment.treasury_number_display }}</p>
+    {% endif %}
+    {% if payment and payment.rejection_code_display %}
+    <p class="mb-1"><strong>Codigo rechazo:</strong> {{ payment.rejection_code_display }}</p>
+    {% endif %}
+    {% if order.delivery_method %}
+    <p class="mb-1"><strong>Entrega:</strong> {{ order.get_delivery_method_display }}</p>
+    {% endif %}
+    {% if order.zone %}<p class="mb-1"><strong>Zona:</strong> {{ order.get_zone_display }}</p>{% endif %}
+    {% if order.sector %}<p class="mb-1"><strong>Sector:</strong> {{ order.get_sector_display }}</p>{% endif %}
+    {% if order.delivery_distance_km %}<p class="mb-1"><strong>Distancia:</strong> {{ order.delivery_distance_km }} km</p>{% endif %}
+    {% if order.estimated_delivery_minutes %}
+    <p class="mb-1"><strong>Tiempo estimado:</strong> {{ order.estimated_delivery_minutes }} min</p>
+    {% endif %}
+    <div class="d-flex gap-2 justify-content-md-end mt-2 flex-wrap">
+      <a href="{% url 'orders:order_ticket' order.id %}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-pdf"></i> Descargar PDF
+      </a>
+      {% if not payment or payment.status != 'completed' %}
+      <a href="{% url 'payments:payment_process' order.id %}" class="btn btn-dark btn-sm">
+        <i class="bi bi-bank"></i> Informar transferencia
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table">
+    <thead class="table-dark">
+      <tr>
+        <th>Producto</th>
+        <th>Valor neto</th>
+        <th>Cantidad</th>
+        <th>Subtotal neto</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td>${{ item.price|floatformat:0 }}</td>
+        <td>{{ item.quantity }}</td>
+        <td class="fw-semibold">${{ item.subtotal|floatformat:0 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Total neto:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_net_total|floatformat:0 }}</td>
+      </tr>
+      {% if payment and payment.status == 'completed' %}
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">IVA 19%:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_tax_amount|floatformat:0 }}</td>
+      </tr>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Despacho:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_delivery_fee|floatformat:0 }}</td>
+      </tr>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Total final:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_grand_total|floatformat:0 }}</td>
+      </tr>
+      {% else %}
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">IVA estimado 19%:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_tax_amount|floatformat:0 }}</td>
+      </tr>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Despacho estimado:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_delivery_fee|floatformat:0 }}</td>
+      </tr>
+      <tr class="table-secondary">
+        <td colspan="3" class="text-end fw-bold">Total estimado:</td>
+        <td class="fw-bold text-success fs-5">${{ order.get_grand_total|floatformat:0 }}</td>
+      </tr>
+      {% endif %}
+    </tfoot>
+  </table>
+</div>
+
+{% if dispatch_task %}
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="fw-bold mb-3">Despacho</h5>
+    <p class="mb-1"><strong>Estado:</strong> {{ dispatch_task.get_status_display }}</p>
+    {% if dispatch_task.assigned_to %}<p class="mb-1"><strong>Asignado a:</strong> {{ dispatch_task.assigned_to.get_full_name|default:dispatch_task.assigned_to.username }}</p>{% endif %}
+    {% if dispatch_task.notes %}<p class="mb-0"><strong>Detalle:</strong> {{ dispatch_task.notes }}</p>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if order.shipping_address %}
+<div class="order-map-panel p-3 mt-4">
+  <div style="color:#93c5fd;font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">
+    Referencia del pedido
+  </div>
+  <div class="order-route-summary">
+    <p class="mb-2"><strong>Sucursal:</strong> {{ store_origin_address }}</p>
+    <p class="mb-2"><strong>Destino:</strong> {{ order.shipping_address }}</p>
+    <p class="mb-2"><strong>Zona / sector:</strong> {{ order.get_zone_display }} / {{ order.get_sector_display }}</p>
+    <p class="mb-0"><strong>Distancia registrada:</strong> {{ order.delivery_distance_km|default:"0" }} km</p>
+  </div>
+  <div class="small mt-2" style="color:#bfdbfe;" id="order-map-status">
+    Distancia referencial registrada segun zona y sector, sin depender de Google Maps.
+  </div>
+</div>
+{% endif %}
+
+{% if notifications %}
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="fw-bold mb-3">Mensajes y notificaciones</h5>
+    {% for notification in notifications %}
+    <div class="border rounded p-3 mb-2">
+      <div class="d-flex justify-content-between gap-2 flex-wrap">
+        <strong>{{ notification.subject }}</strong>
+        <span class="text-muted small">{{ notification.created_at|date:"d/m/Y H:i" }}</span>
+      </div>
+      <div class="small text-uppercase text-muted mb-1">{{ notification.get_recipient_type_display }} - {{ notification.get_channel_display }}</div>
+      <div>{{ notification.message }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if validation_logs %}
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="fw-bold mb-3">Historial de validacion</h5>
+    {% for log in validation_logs %}
+    <div class="border rounded p-3 mb-2">
+      <div class="d-flex justify-content-between gap-2 flex-wrap">
+        <strong>{{ log.get_action_display }}</strong>
+        <span class="text-muted small">{{ log.created_at|date:"d/m/Y H:i" }}</span>
+      </div>
+      {% if log.code %}<div class="small text-uppercase text-muted mb-1">{{ log.code }}</div>{% endif %}
+      {% if log.detail %}<div>{{ log.detail }}</div>{% endif %}
+      {% if log.actor %}<div class="small text-muted mt-1">Por {{ log.actor.get_full_name|default:log.actor.username }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<a href="{% url 'orders:order_list' %}" class="btn btn-outline-dark mt-3">&larr; Volver a mis ordenes</a>
+{% endblock %}

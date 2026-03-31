@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Panel Admin &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<style>
+  .pn-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 36px;
+  }
+  .pn-stat-card {
+    background: var(--bc-surface);
+    border: 1px solid rgba(212,175,55,0.12);
+    border-radius: 4px;
+    padding: 20px 22px;
+    transition: border-color 0.2s;
+  }
+  .pn-stat-card:hover { border-color: var(--bc-gold); }
+  .pn-stat-label {
+    font-family: var(--bc-sans);
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--bc-muted);
+    margin-bottom: 8px;
+  }
+  .pn-stat-num {
+    font-family: var(--bc-serif);
+    font-size: 28px; font-weight: 400;
+    color: var(--bc-gold); line-height: 1;
+  }
+  .pn-stat-sub {
+    font-family: var(--bc-sans);
+    font-size: 11px; color: var(--bc-muted); margin-top: 4px;
+  }
+  .pn-stat-alert { border-color: rgba(239,68,68,0.3) !important; }
+  .pn-stat-alert .pn-stat-num { color: #f87171; }
+
+  .pn-section-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid rgba(212,175,55,0.1);
+  }
+  .pn-section-title h2 {
+    font-family: var(--bc-serif);
+    font-size: 18px; font-weight: 400;
+    color: var(--bc-cream); margin: 0;
+  }
+  .pn-section-title a {
+    font-family: var(--bc-sans);
+    font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--bc-gold);
+    text-decoration: none;
+  }
+  .pn-table { width: 100%; border-collapse: collapse; }
+  .pn-table th {
+    font-family: var(--bc-sans); font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--bc-muted); padding: 10px 14px;
+    text-align: left; border-bottom: 1px solid rgba(212,175,55,0.1);
+  }
+  .pn-table td {
+    font-family: var(--bc-sans); font-size: 13px;
+    color: var(--bc-cream); padding: 12px 14px;
+    border-bottom: 1px solid rgba(212,175,55,0.06);
+    vertical-align: middle;
+  }
+  .pn-table tr:hover td { background: rgba(212,175,55,0.03); }
+  .pn-table tr:last-child td { border-bottom: none; }
+
+  .pn-status { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); padding: 3px 9px; border-radius: 2px; }
+  .pn-status-pending { background: rgba(234,179,8,0.12); border: 1px solid rgba(234,179,8,0.3); color: #fde047; }
+  .pn-status-processing { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .pn-status-delivered { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+  .pn-status-cancelled { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+  .pn-status-shipped { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); color: #d8b4fe; }
+
+  .pn-historial-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid rgba(212,175,55,0.06);
+  }
+  .pn-historial-item:last-child { border-bottom: none; }
+  .pn-historial-dot {
+    width: 8px; height: 8px;
+    background: var(--bc-gold); border-radius: 50%;
+    margin-top: 4px; flex-shrink: 0; opacity: 0.6;
+  }
+  .pn-historial-info { flex: 1; }
+  .pn-historial-action { font-family: var(--bc-sans); font-size: 12px; color: var(--bc-cream); }
+  .pn-historial-action strong { color: var(--bc-gold); }
+  .pn-historial-time { font-family: var(--bc-sans); font-size: 11px; color: var(--bc-muted); margin-top: 2px; }
+
+  .pn-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 24px; }
+  .pn-analytics-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:24px; }
+  .pn-mini-list { margin:0; padding:0; list-style:none; }
+  .pn-mini-list li { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid rgba(212,175,55,0.06); font-family:var(--bc-sans); color:var(--bc-cream); }
+  .pn-mini-list li:last-child { border-bottom:none; }
+  #orders-map { height: 340px; border-radius: 4px; overflow: hidden; border:1px solid rgba(212,175,55,0.12); }
+
+  .pn-accion-badge { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); padding: 2px 8px; border-radius: 2px; }
+  .pn-accion-crear { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
+  .pn-accion-editar { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; }
+  .pn-accion-eliminar { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+  .pn-accion-precio { background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25); color: var(--bc-gold); }
+  .pn-accion-oferta { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #d8b4fe; }
+  .pn-accion-campana { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #d8b4fe; }
+  .pn-accion-stock { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; }
+</style>
+
+<!-- STATS -->
+<div class="pn-stats-grid">
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Productos</div>
+    <div class="pn-stat-num">{{ total_productos }}</div>
+    <div class="pn-stat-sub">en catálogo</div>
+  </div>
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Categorías</div>
+    <div class="pn-stat-num">{{ total_categorias }}</div>
+    <div class="pn-stat-sub">activas</div>
+  </div>
+  <div class="pn-stat-card {% if ordenes_pendientes > 0 %}pn-stat-alert{% endif %}">
+    <div class="pn-stat-label">Órdenes pendientes</div>
+    <div class="pn-stat-num">{{ ordenes_pendientes }}</div>
+    <div class="pn-stat-sub">de {{ total_ordenes }} totales</div>
+  </div>
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Ventas totales</div>
+    <div class="pn-stat-num">${{ ventas_totales|floatformat:0 }}</div>
+    <div class="pn-stat-sub">pagadas</div>
+  </div>
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Ofertas activas</div>
+    <div class="pn-stat-num">{{ ofertas_activas }}</div>
+    <div class="pn-stat-sub">vigentes hoy</div>
+  </div>
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Campañas activas</div>
+    <div class="pn-stat-num">{{ campanas_activas }}</div>
+    <div class="pn-stat-sub">en curso</div>
+  </div>
+  {% if productos_sin_stock > 0 %}
+  <div class="pn-stat-card pn-stat-alert">
+    <div class="pn-stat-label">Sin stock</div>
+    <div class="pn-stat-num">{{ productos_sin_stock }}</div>
+    <div class="pn-stat-sub">productos agotados</div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="pn-stats-grid">
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Zonas con pedidos</div>
+    <div class="pn-stat-num">{{ ordenes_zona|length }}</div>
+    <div class="pn-stat-sub">para analisis comercial</div>
+  </div>
+  <div class="pn-stat-card">
+    <div class="pn-stat-label">Sectores con pedidos</div>
+    <div class="pn-stat-num">{{ ordenes_sector|length }}</div>
+    <div class="pn-stat-sub">con actividad reciente</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- ÚLTIMAS ÓRDENES -->
+  <div class="col-12 col-lg-7">
+    <div class="pn-card">
+      <div class="pn-section-title">
+        <h2>Últimas Órdenes</h2>
+        <a href="{% url 'catalog:panel_ordenes' %}">Ver todas →</a>
+      </div>
+      <table class="pn-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Estado</th>
+            <th>Total</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for orden in ultimas_ordenes %}
+          <tr>
+            <td>
+              <a href="{% url 'catalog:panel_orden_detalle' orden.pk %}"
+                 style="color:var(--bc-gold);">#{{ orden.id }}</a>
+            </td>
+            <td>{{ orden.user.username }}</td>
+            <td>
+              <span class="pn-status pn-status-{{ orden.status }}">
+                {{ orden.get_status_display }}
+              </span>
+            </td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);">
+              ${{ orden.get_grand_total|floatformat:0 }}
+            </td>
+            <td style="color:var(--bc-muted);font-size:12px;">
+              {{ orden.created_at|date:"d/m/Y" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;color:var(--bc-muted);
+               font-style:italic;padding:24px;">
+              Sin órdenes aún
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ACTIVIDAD RECIENTE -->
+  <div class="col-12 col-lg-5">
+    <div class="pn-card">
+      <div class="pn-section-title">
+        <h2>Actividad Reciente</h2>
+        <a href="{% url 'catalog:panel_historial' %}">Ver todo →</a>
+      </div>
+      {% for cambio in ultimos_cambios %}
+      <div class="pn-historial-item">
+        <div class="pn-historial-dot"></div>
+        <div class="pn-historial-info">
+          <div class="pn-historial-action">
+            <span class="pn-accion-badge pn-accion-{{ cambio.accion }}">
+              {{ cambio.get_accion_display }}
+            </span>
+            <strong style="margin-left:8px;">{{ cambio.objeto_nombre }}</strong>
+          </div>
+          <div class="pn-historial-time">
+            {{ cambio.usuario.username }} &middot;
+            {{ cambio.fecha|date:"d/m/Y H:i" }}
+            {% if cambio.detalle %}
+            <br>
+            <span style="color:var(--bc-muted);font-size:11px;">
+              {{ cambio.detalle }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--bc-muted);font-style:italic;
+         font-family:var(--bc-serif);font-size:14px;
+         text-align:center;padding:20px 0;">
+        Sin actividad reciente
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="pn-analytics-grid">
+  <div class="pn-card">
+    <div class="pn-section-title">
+      <h2>Compras por Zona</h2>
+    </div>
+    <ul class="pn-mini-list">
+      {% for item in ordenes_zona %}
+      <li><span>{{ item.label }}</span><strong>{{ item.total }}</strong></li>
+      {% empty %}
+      <li><span>Sin datos aun</span><strong>0</strong></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="pn-card">
+    <div class="pn-section-title">
+      <h2>Compras por Sector</h2>
+    </div>
+    <ul class="pn-mini-list">
+      {% for item in ordenes_sector %}
+      <li><span>{{ item.label }}</span><strong>{{ item.total }}</strong></li>
+      {% empty %}
+      <li><span>Sin datos aun</span><strong>0</strong></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="pn-card mt-4">
+  <div class="pn-section-title">
+    <h2>Mapa de Pedidos</h2>
+  </div>
+  <div id="orders-map"></div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script>
+  (function() {
+    const points = {{ sales_map_points_json|safe }};
+    const mapEl = document.getElementById('orders-map');
+    if (!mapEl || typeof L === 'undefined') return;
+    const map = L.map('orders-map').setView([-33.4489, -70.6693], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+    points.forEach(point => {
+      L.marker([point.lat, point.lng]).addTo(map)
+        .bindPopup(
+          `<strong>Pedido #${point.id}</strong><br>` +
+          `${point.customer}<br>` +
+          `${point.zone} / ${point.sector}<br>` +
+          `Total: $${Math.round(point.total)}<br>` +
+          `${point.status}`
+        );
+    });
+  })();
+</script>
+
+{% endblock %}

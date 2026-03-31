@@ -1,0 +1,459 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Boccato di Cardinale{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    :root {
+      --bc-bg:        #0a0806;
+      --bc-surface:   #110e0a;
+      --bc-surface2:  #1a1510;
+      --bc-gold:      #d4af37;
+      --bc-gold-dim:  #a8892a;
+      --bc-gold-glow: rgba(212,175,55,0.12);
+      --bc-burgundy:  #72303a;
+      --bc-cream:     #f5f0e8;
+      --bc-muted:     #7a6a5a;
+      --bc-border:    rgba(212,175,55,0.18);
+      --bc-serif:     'Cormorant Garamond', Georgia, serif;
+      --bc-sans:      'Jost', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      background: var(--bc-bg);
+      color: var(--bc-cream);
+      font-family: var(--bc-sans);
+      font-size: 15px;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAVBAR ── */
+    .bc-navbar {
+      background: rgba(10,8,6,0.96);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--bc-border);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .bc-navbar .container {
+      display: flex;
+      align-items: center;
+      height: 72px;
+      gap: 28px;
+    }
+
+    /* ── LOGO ── */
+    .bc-brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .bc-brand-icon {
+      width: 40px; height: 40px;
+      border: 1.5px solid var(--bc-gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; flex-shrink: 0;
+    }
+
+    .bc-brand-icon::after {
+      content: '';
+      position: absolute; top: -50%; left: -80%;
+      width: 50%; height: 200%;
+      background: linear-gradient(100deg, transparent 20%, rgba(212,175,55,0.7) 50%, transparent 80%);
+      transform: skewX(-15deg);
+      animation: gold-shine 4s ease-in-out infinite;
+    }
+
+    @keyframes gold-shine {
+      0%        { left: -80%; opacity: 0; }
+      10%       { opacity: 1; }
+      45%       { left: 140%; opacity: 1; }
+      46%, 100% { left: 140%; opacity: 0; }
+    }
+
+    .bc-brand-icon span {
+      font-family: var(--bc-serif);
+      font-size: 20px; font-style: italic;
+      color: var(--bc-gold); font-weight: 600;
+      position: relative; z-index: 1;
+    }
+
+    .bc-brand-text { display: flex; flex-direction: column; gap: 1px; }
+
+    .bc-brand-name {
+      font-family: var(--bc-serif);
+      font-size: 17px; font-weight: 600;
+      color: var(--bc-cream); letter-spacing: 1.5px;
+      line-height: 1; position: relative;
+      overflow: hidden; display: inline-block;
+    }
+
+    .bc-brand-name::after {
+      content: '';
+      position: absolute; top: 0; left: -110%;
+      width: 60%; height: 100%;
+      background: linear-gradient(100deg, transparent 20%, rgba(212,175,55,0.3) 50%, transparent 80%);
+      transform: skewX(-10deg);
+      animation: gold-shine 4s ease-in-out infinite;
+      animation-delay: 0.25s;
+    }
+
+    .bc-brand-sub {
+      font-size: 9px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--bc-gold);
+      font-family: var(--bc-sans); font-weight: 400;
+    }
+
+    /* ── NAV LINKS ── */
+    .bc-nav-links {
+      display: flex; align-items: center; gap: 2px;
+      list-style: none; margin: 0; padding: 0; flex: 1;
+    }
+
+    .bc-nav-links .nav-link {
+      color: var(--bc-muted) !important;
+      font-size: 13px; font-weight: 400;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 6px 14px !important; border-radius: 3px;
+      font-family: var(--bc-sans);
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .bc-nav-links .nav-link:hover {
+      color: var(--bc-gold) !important;
+      background: var(--bc-gold-glow);
+    }
+
+    .bc-cart-btn {
+      background: var(--bc-surface2) !important;
+      border: 1px solid var(--bc-border) !important;
+      color: var(--bc-cream) !important;
+      border-radius: 3px !important;
+      padding: 6px 16px !important;
+      font-size: 12px !important; letter-spacing: 1px !important;
+      text-transform: uppercase !important;
+      transition: border-color 0.2s, color 0.2s !important;
+    }
+
+    .bc-cart-btn:hover {
+      border-color: var(--bc-gold) !important;
+      color: var(--bc-gold) !important;
+      background: var(--bc-gold-glow) !important;
+    }
+
+    .bc-badge {
+      background: var(--bc-gold); color: var(--bc-bg);
+      font-size: 10px; font-weight: 600;
+      padding: 2px 6px; border-radius: 10px; margin-left: 6px;
+    }
+
+    /* ── USER AREA ── */
+    .bc-user-area {
+      display: flex; align-items: center; gap: 8px;
+      list-style: none; margin: 0; padding: 0; flex-shrink: 0;
+    }
+
+    .bc-dropdown-toggle {
+      color: var(--bc-muted) !important;
+      font-size: 13px; letter-spacing: 1px;
+      text-transform: uppercase; font-family: var(--bc-sans);
+    }
+
+    .bc-dropdown-toggle:hover { color: var(--bc-gold) !important; }
+
+    .dropdown-menu {
+      background: var(--bc-surface);
+      border: 1px solid var(--bc-border);
+      border-radius: 3px; padding: 6px 0;
+    }
+
+    .dropdown-item {
+      color: var(--bc-muted); font-size: 13px;
+      font-family: var(--bc-sans); letter-spacing: 0.5px;
+      padding: 8px 18px; transition: color 0.2s, background 0.2s;
+    }
+
+    .dropdown-item:hover { background: var(--bc-gold-glow); color: var(--bc-gold); }
+    .dropdown-divider { border-color: var(--bc-border); }
+
+    .bc-btn-reservar {
+      border: 1px solid var(--bc-gold) !important;
+      color: var(--bc-gold) !important;
+      font-size: 11px !important; letter-spacing: 2px !important;
+      text-transform: uppercase !important;
+      padding: 7px 20px !important; border-radius: 2px !important;
+      font-family: var(--bc-sans) !important;
+      background: transparent !important;
+      transition: background 0.2s, color 0.2s !important;
+      white-space: nowrap;
+    }
+
+    .bc-btn-reservar:hover {
+      background: var(--bc-gold) !important;
+      color: var(--bc-bg) !important;
+    }
+
+    .navbar-toggler { border-color: var(--bc-border); }
+    .navbar-toggler-icon { filter: invert(1) sepia(1) saturate(2) hue-rotate(5deg); }
+
+    /* ── ALERTS ── */
+    .bc-messages { padding: 16px 0 0; }
+
+    .alert {
+      background: var(--bc-surface2);
+      border: 1px solid var(--bc-border);
+      color: var(--bc-cream); border-radius: 3px;
+      font-family: var(--bc-sans); font-size: 14px;
+    }
+
+    .alert-success { border-color: rgba(34,197,94,0.35); color: #86efac; }
+    .alert-danger  { border-color: rgba(239,68,68,0.35); color: #fca5a5; }
+    .alert-warning { border-color: rgba(212,175,55,0.35); color: var(--bc-gold); }
+    .alert-info    { border-color: rgba(212,175,55,0.2);  color: var(--bc-cream); }
+
+    /* ── MAIN ── */
+    main { flex: 1; padding-top: 36px; padding-bottom: 56px; }
+
+    /* ── FOOTER ── */
+    .bc-footer {
+      background: var(--bc-surface);
+      border-top: 1px solid var(--bc-border);
+      padding: 36px 0; margin-top: auto;
+    }
+
+    .bc-footer-logo {
+      font-family: var(--bc-serif);
+      font-size: 18px; font-style: italic;
+      color: var(--bc-cream); margin-bottom: 4px;
+    }
+
+    .bc-footer-logo span { color: var(--bc-gold); }
+
+    .bc-footer-sub {
+      font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--bc-gold); margin-bottom: 16px;
+    }
+
+    .bc-footer-links { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+
+    .bc-footer-links a {
+      color: var(--bc-muted); font-size: 12px;
+      letter-spacing: 1px; text-transform: uppercase;
+      text-decoration: none; transition: color 0.2s;
+    }
+
+    .bc-footer-links a:hover { color: var(--bc-gold); }
+
+    .bc-footer-copy { color: #3a2e24; font-size: 12px; }
+
+    /* ── BOOTSTRAP OVERRIDES ── */
+    .card {
+      background: var(--bc-surface); border: 1px solid var(--bc-border);
+      border-radius: 4px; color: var(--bc-cream); transition: border-color 0.25s;
+    }
+    .card:hover { border-color: var(--bc-gold); }
+
+    .btn-primary {
+      background: var(--bc-gold); border-color: var(--bc-gold);
+      color: var(--bc-bg); font-family: var(--bc-sans);
+      font-weight: 500; letter-spacing: 1.5px;
+      text-transform: uppercase; font-size: 12px; border-radius: 2px;
+    }
+    .btn-primary:hover { background: var(--bc-gold-dim); border-color: var(--bc-gold-dim); color: var(--bc-bg); }
+
+    .btn-outline-secondary {
+      border-color: rgba(212,175,55,0.35); color: var(--bc-gold);
+      border-radius: 2px; font-size: 12px;
+      letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--bc-sans);
+    }
+    .btn-outline-secondary:hover { background: var(--bc-gold-glow); border-color: var(--bc-gold); color: var(--bc-gold); }
+
+    .form-control, .form-select {
+      background: var(--bc-surface2); border-color: var(--bc-border);
+      color: var(--bc-cream); border-radius: 3px; font-family: var(--bc-sans);
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--bc-surface2); border-color: var(--bc-gold);
+      color: var(--bc-cream); box-shadow: 0 0 0 3px var(--bc-gold-glow);
+    }
+    .form-control::placeholder { color: var(--bc-muted); }
+    .form-label { color: var(--bc-cream); font-size: 13px; letter-spacing: 0.5px; }
+
+    .table { color: var(--bc-cream); }
+    .table thead th {
+      border-color: var(--bc-border); color: var(--bc-gold);
+      font-size: 11px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 1.5px; font-family: var(--bc-sans);
+    }
+    .table td, .table th { border-color: var(--bc-border); }
+
+    h1, h2, h3, h4, h5, h6 { font-family: var(--bc-serif); color: var(--bc-cream); }
+
+    a { color: var(--bc-gold); }
+    a:hover { color: var(--bc-gold-dim); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bc-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--bc-surface2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--bc-gold-dim); }
+  </style>
+</head>
+
+<body>
+
+<nav class="bc-navbar navbar navbar-expand-lg">
+  <div class="container">
+
+    <!-- ══ LOGO → siempre va al HOME ══ -->
+    <a class="bc-brand" href="{% url 'catalog:product_list' %}">
+      <div class="bc-brand-icon"><span>B</span></div>
+      <div class="bc-brand-text">
+        <div class="bc-brand-name">Boccato di Cardinale</div>
+        <div class="bc-brand-sub">Boutique Gourmet &middot; Santiago</div>
+      </div>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#bcNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="bcNav">
+      <ul class="bc-nav-links">
+
+        <!-- CARTA → menú digital del restaurante -->
+        <li><a class="nav-link" href="{% url 'menu:carta_home' %}">Carta</a></li>
+
+        <!-- TERRAZA & BAR → galería de fotos -->
+        <li><a class="nav-link" href="{% url 'catalog:terraza' %}">Terraza&amp;Bar</a></li>
+
+        <!-- CONTACTO -->
+        <li><a class="nav-link" href="{% url 'contact:contact' %}">Contacto</a></li>
+
+        <!-- PRODUCTOS → tienda online eCommerce -->
+        <li><a class="nav-link" href="{% url 'catalog:product_list' %}">
+          <i class="bi bi-shop"></i> Tienda
+        </a></li>
+
+        <!-- STAFF ONLY -->
+        {% if user.is_staff %}
+          <li><a class="nav-link" style="color:var(--bc-gold)!important;"
+                 href="{% url 'catalog:product_create' %}">
+            <i class="bi bi-plus-circle"></i> Producto
+          </a></li>
+          <li><a class="nav-link" style="color:var(--bc-gold)!important;"
+                 href="{% url 'inventory:inventory_list' %}">
+            <i class="bi bi-boxes"></i> Inventario
+          </a></li>
+          <li><a class="nav-link" style="color:var(--bc-gold)!important;"
+                 href="{% url 'catalog:panel_dashboard' %}">
+            <i class="bi bi-speedometer2"></i> Panel
+          </a></li>
+        {% endif %}
+
+        <!-- CARRITO -->
+        <li>
+          <a class="nav-link bc-cart-btn" href="{% url 'cart:cart_detail' %}">
+            <i class="bi bi-bag"></i> Carrito
+            {% if cart_count > 0 %}<span class="bc-badge">{{ cart_count }}</span>{% endif %}
+          </a>
+        </li>
+
+      </ul>
+
+      <ul class="bc-user-area">
+        {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link bc-dropdown-toggle dropdown-toggle" href="#" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle"></i> {{ user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'orders:order_list' %}">
+                <i class="bi bi-bag-check me-2"></i>Mis Órdenes</a></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                <i class="bi bi-person me-2"></i>Mi Perfil</a></li>
+              {% if user.is_staff %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'catalog:panel_dashboard' %}">
+                  <i class="bi bi-speedometer2 me-2"></i>Panel Admin</a></li>
+                <li><a class="dropdown-item" href="{% url 'caja:dashboard' %}">
+                  <i class="bi bi-cash-register me-2"></i>Caja</a></li>
+                <li><a class="dropdown-item" href="{% url 'comandas:layout_mesas' %}">
+                  <i class="bi bi-grid me-2"></i>Comandas</a></li>
+                <li><a class="dropdown-item" href="{% url 'menu:panel_menu' %}">
+                  <i class="bi bi-menu-button-wide me-2"></i>Panel Menús</a></li>
+                <li><a class="dropdown-item" href="/admin/">
+                  <i class="bi bi-gear me-2"></i>Django Admin</a></li>
+              {% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
+                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+            </ul>
+          </li>
+        {% else %}
+          <li><a class="nav-link bc-btn-reservar" href="{% url 'accounts:login' %}">Ingresar</a></li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </div>
+</nav>
+
+{% if messages %}
+<div class="container bc-messages">
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show">
+    {{ msg }}
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="container">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="bc-footer">
+  <div class="container">
+    <div class="bc-footer-logo"><span>Boccato</span> di Cardinale</div>
+    <div class="bc-footer-sub">Boutique Gourmet &middot; Desde 1987 &middot; Santiago de Chile</div>
+    <div class="bc-footer-links">
+      <a href="{% url 'catalog:product_list' %}">Inicio</a>
+      <a href="{% url 'menu:carta_home' %}">Carta</a>
+      <a href="{% url 'catalog:terraza' %}">Terraza&amp;Bar</a>
+      <a href="{% url 'contact:contact' %}">Contacto</a>
+      <a href="{% url 'cart:cart_detail' %}">Carrito</a>
+      {% if user.is_staff %}
+      <a href="{% url 'catalog:panel_dashboard' %}" style="color:var(--bc-gold);">Panel</a>
+      <a href="{% url 'caja:dashboard' %}" style="color:var(--bc-gold);">Caja</a>
+      {% endif %}
+    </div>
+    <div class="bc-footer-copy">
+      &copy; 2026 Boccato di Cardinale &middot; Dulces, Caf&eacute;s &amp; Licores Gourmet &middot; Django + PostgreSQL
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Carta Completa | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .full-menu-wrap { background:#f7f3eb; color:#1a1208; border-radius:6px; overflow:hidden; }
+  .full-menu-header { padding:44px 36px 28px; background:#fffdf8; border-bottom:1px solid rgba(184,150,46,0.18); }
+  .full-menu-title { font-family:var(--bc-serif); font-size:clamp(2rem,4vw,3rem); color:#1a1208; margin:0; }
+  .full-menu-sub { margin-top:8px; color:#6b5a3e; font-style:italic; }
+  .full-menu-nav { display:flex; gap:8px; flex-wrap:wrap; padding:16px 36px; background:#1a1208; }
+  .full-menu-nav a { color:#d4af37; text-decoration:none; border:1px solid rgba(212,175,55,0.24); padding:7px 14px; border-radius:2px; font-size:11px; letter-spacing:1.4px; text-transform:uppercase; }
+  .full-menu-section { padding:34px 36px; border-bottom:1px solid rgba(184,150,46,0.12); background:#fffdf8; }
+  .full-menu-section h2 { font-family:var(--bc-serif); font-size:30px; color:#1a1208; margin:0 0 18px; }
+  .full-menu-cat { margin-top:16px; margin-bottom:8px; color:#b8962e; font-size:11px; text-transform:uppercase; letter-spacing:2px; }
+  .full-menu-item { display:flex; justify-content:space-between; gap:20px; padding:14px 0; border-bottom:1px solid rgba(184,150,46,0.08); }
+  .full-menu-item:last-child { border-bottom:none; }
+  .full-menu-copy { display:flex; gap:16px; align-items:flex-start; }
+  .full-menu-thumb { width:88px; height:88px; object-fit:cover; border-radius:4px; border:1px solid rgba(184,150,46,0.18); flex-shrink:0; }
+  .full-menu-name { font-family:var(--bc-serif); font-size:18px; color:#1a1208; margin-bottom:4px; }
+  .full-menu-desc { color:#6b5a3e; font-style:italic; }
+  .full-menu-price { font-family:var(--bc-serif); font-size:20px; color:#1a1208; white-space:nowrap; }
+</style>
+
+<div class="full-menu-wrap">
+  <div class="full-menu-header">
+    <h1 class="full-menu-title">Carta Completa</h1>
+    <div class="full-menu-sub">Vista completa de ejemplo con precios enteros, sin decimales.</div>
+  </div>
+  <div class="full-menu-nav">
+    <a href="{% url 'menu:carta_home' %}">← Carta</a>
+    {% for seccion in secciones_menu %}
+    <a href="#sec-{{ seccion.tipo }}">{{ seccion.label }}</a>
+    {% endfor %}
+  </div>
+
+  {% for seccion in secciones_menu %}
+  <section class="full-menu-section" id="sec-{{ seccion.tipo }}">
+    <h2>{{ seccion.label }}</h2>
+    {% if seccion.ejemplo %}
+      {% for item in seccion.items %}
+      <div class="full-menu-item">
+        <div>
+          <div class="full-menu-name">{{ item.nombre }}</div>
+          <div class="full-menu-desc">{{ item.descripcion }}</div>
+        </div>
+        <div class="full-menu-price">${{ item.precio|floatformat:0 }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      {% for bloque in seccion.categorias %}
+      <div class="full-menu-cat">{{ bloque.categoria.nombre }}</div>
+      {% for item in bloque.items %}
+      <div class="full-menu-item">
+        <div class="full-menu-copy">
+          {% if item.display_image_url %}
+          <img src="{{ item.display_image_url }}" class="full-menu-thumb" alt="{{ item.nombre }}">
+          {% endif %}
+          <div>
+            <div class="full-menu-name">{{ item.nombre }}</div>
+            {% if item.descripcion %}<div class="full-menu-desc">{{ item.descripcion }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="full-menu-price">${{ item.precio|floatformat:0 }}</div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

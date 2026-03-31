@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Historial · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card">
+  <div class="pn-section-title"><h2>Historial de Cambios</h2></div>
+
+  <form method="get"
+        style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <input type="text" name="usuario" value="{{ usuario_q }}"
+           placeholder="Buscar por usuario..."
+           style="flex:1;min-width:180px;background:var(--bc-surface2);
+                  border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);
+                  border-radius:2px;padding:9px 14px;font-family:var(--bc-sans);font-size:13px;">
+    <select name="accion"
+            style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);
+                   color:var(--bc-cream);border-radius:2px;padding:9px 14px;
+                   font-family:var(--bc-sans);font-size:13px;">
+      <option value="">Todas las acciones</option>
+      {% for val, label in accion_choices %}
+        <option value="{{ val }}" {% if val == accion_sel %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="pn-btn-outline">
+      <i class="bi bi-funnel"></i> Filtrar
+    </button>
+  </form>
+
+  <table class="pn-table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Usuario</th>
+        <th>Acción</th>
+        <th>Modelo</th>
+        <th>Objeto</th>
+        <th>Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in historial %}
+      <tr>
+        <td style="color:var(--bc-muted);font-size:12px;white-space:nowrap;">
+          {{ h.fecha|date:"d/m/Y H:i" }}
+        </td>
+        <td>{{ h.usuario.username|default:"—" }}</td>
+        <td>
+          <span class="pn-badge
+            {% if h.accion == 'crear' %}pn-badge-green
+            {% elif h.accion == 'editar' or h.accion == 'precio' or h.accion == 'stock' %}pn-badge-blue
+            {% elif h.accion == 'eliminar' %}pn-badge-red
+            {% elif h.accion == 'oferta' or h.accion == 'campana' %}pn-badge-purple
+            {% else %}pn-badge-gold{% endif %}">
+            {{ h.get_accion_display }}
+          </span>
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">{{ h.modelo }}</td>
+        <td>{{ h.objeto_nombre }}</td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ h.detalle|default:"—" }}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">
+          <div class="pn-empty">
+            <div style="font-size:2rem;color:var(--bc-gold);opacity:0.3;">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <p>Sin actividad registrada.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

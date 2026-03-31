@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Confirmar Eliminación · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card" style="max-width:480px;">
+  <div style="text-align:center;padding:16px 0 24px;">
+    <div style="font-size:2.5rem;color:#f87171;margin-bottom:16px;">
+      <i class="bi bi-exclamation-triangle"></i>
+    </div>
+    <h2 style="font-family:var(--bc-serif);font-size:22px;font-weight:400;
+               color:var(--bc-cream);margin:0 0 10px;">
+      ¿Eliminar {{ tipo }}?
+    </h2>
+    <p style="font-family:var(--bc-serif);font-style:italic;font-size:15px;
+              color:var(--bc-muted);margin:0 0 28px;">
+      Esta acción no se puede deshacer.<br>
+      <strong style="color:var(--bc-cream);">{{ objeto }}</strong>
+      será eliminado permanentemente.
+    </p>
+    <form method="post"
+          style="display:flex;gap:12px;justify-content:center;">
+      {% csrf_token %}
+      <button type="submit" class="pn-btn-danger"
+              style="padding:10px 24px;font-size:11px;">
+        <i class="bi bi-trash"></i> Sí, eliminar
+      </button>
+      <a href="javascript:history.back()" class="pn-btn-outline">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

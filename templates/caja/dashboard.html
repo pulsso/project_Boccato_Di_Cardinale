@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Caja &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+  .cj-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(212,175,55,0.12); flex-wrap: wrap; gap: 12px; }
+  .cj-header h1 { font-family: var(--bc-serif); font-size: 24px; font-weight: 400; color: var(--bc-cream); margin: 0; }
+  .cj-status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 3px; font-family: var(--bc-sans); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .cj-status.abierta { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+  .cj-status.cerrada { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+  .cj-status.pendiente { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); color: #fde047; }
+  .cj-status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse-dot 2s ease-in-out infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.4;transform:scale(0.7);} }
+  .cj-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .cj-stat { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 18px 20px; }
+  .cj-stat-label { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-muted); margin-bottom: 6px; }
+  .cj-stat-num { font-family: var(--bc-serif); font-size: 26px; font-weight: 400; color: var(--bc-gold); line-height: 1; }
+  .cj-stat-sub { font-family: var(--bc-sans); font-size: 11px; color: var(--bc-muted); margin-top: 3px; }
+  .cj-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 22px; margin-bottom: 24px; }
+  .cj-section-title { font-family: var(--bc-serif); font-size: 20px; font-weight: 400; color: var(--bc-cream); margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(212,175,55,0.1); }
+  .cj-comanda-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .cj-comanda-card { background: var(--bc-surface2); border: 1px solid rgba(212,175,55,0.15); border-radius: 4px; padding: 18px; transition: border-color 0.2s; }
+  .cj-comanda-card:hover { border-color: var(--bc-gold); }
+  .cj-comanda-mesa { font-family: var(--bc-serif); font-size: 22px; font-weight: 400; color: var(--bc-cream); margin: 0 0 4px; }
+  .cj-comanda-garzon { font-family: var(--bc-sans); font-size: 12px; color: var(--bc-muted); margin-bottom: 8px; }
+  .cj-comanda-total { font-family: var(--bc-serif); font-size: 20px; font-weight: 600; color: var(--bc-gold); margin-bottom: 12px; }
+  .cj-comanda-items { font-family: var(--bc-sans); font-size: 11px; color: var(--bc-muted); margin-bottom: 14px; }
+  .cj-btn-cobrar { display: block; width: 100%; background: var(--bc-gold); color: var(--bc-bg); font-family: var(--bc-sans); font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; padding: 10px; border: none; border-radius: 2px; text-align: center; text-decoration: none; cursor: pointer; transition: background 0.2s; }
+  .cj-btn-cobrar:hover { background: var(--bc-gold-dim); color: var(--bc-bg); }
+  .cj-resumen-table { width: 100%; border-collapse: collapse; }
+  .cj-resumen-table td { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); padding: 10px 14px; border-bottom: 1px solid rgba(212,175,55,0.06); }
+  .cj-resumen-table td:last-child { text-align: right; color: var(--bc-gold); font-family: var(--bc-serif); font-size: 15px; }
+  .cj-resumen-table tr:last-child td { border-bottom: none; }
+  .cj-btn { display: inline-flex; align-items: center; gap: 7px; font-family: var(--bc-sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 22px; border-radius: 2px; text-decoration: none; cursor: pointer; transition: all 0.2s; border: none; }
+  .cj-btn-primary { background: var(--bc-gold); color: var(--bc-bg); }
+  .cj-btn-primary:hover { background: var(--bc-gold-dim); color: var(--bc-bg); }
+  .cj-btn-outline { border: 1px solid rgba(212,175,55,0.3); color: var(--bc-gold); background: transparent; }
+  .cj-btn-outline:hover { background: var(--bc-gold-glow); color: var(--bc-gold); }
+  .cj-btn-danger { border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; background: transparent; }
+  .cj-btn-danger:hover { background: rgba(239,68,68,0.1); color: #fca5a5; }
+</style>
+
+<div class="cj-header">
+  <h1>Módulo de Caja</h1>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    {% if apertura_activa %}
+      <span class="cj-status abierta"><span class="cj-status-dot"></span> Caja Abierta</span>
+      <a href="{% url 'caja:solicitar_cierre' apertura_activa.pk %}" class="cj-btn cj-btn-danger">
+        <i class="bi bi-lock"></i> Solicitar Cierre
+      </a>
+    {% elif apertura_pendiente %}
+      <span class="cj-status pendiente"><span class="cj-status-dot"></span> Apertura Pendiente</span>
+    {% else %}
+      <span class="cj-status cerrada"><span class="cj-status-dot"></span> Caja Cerrada</span>
+      <a href="{% url 'caja:solicitar_apertura' %}" class="cj-btn cj-btn-primary">
+        <i class="bi bi-unlock"></i> Solicitar Apertura
+      </a>
+    {% endif %}
+    <a href="{% url 'caja:historial_pagos' %}" class="cj-btn cj-btn-outline">
+      <i class="bi bi-clock-history"></i> Historial
+    </a>
+    <a href="{% url 'caja:tesorero_dashboard' %}" class="cj-btn cj-btn-outline">
+      <i class="bi bi-shield-check"></i> Tesorero
+    </a>
+  </div>
+</div>
+
+<div class="cj-stats">
+  <div class="cj-stat">
+    <div class="cj-stat-label">Total del día</div>
+    <div class="cj-stat-num">${{ total_hoy|floatformat:0 }}</div>
+    <div class="cj-stat-sub">{{ pagos_hoy }} pagos</div>
+  </div>
+  <div class="cj-stat">
+    <div class="cj-stat-label">Propinas</div>
+    <div class="cj-stat-num">${{ propinas_hoy|floatformat:0 }}</div>
+    <div class="cj-stat-sub">acumuladas hoy</div>
+  </div>
+  <div class="cj-stat">
+    <div class="cj-stat-label">Por cobrar</div>
+    <div class="cj-stat-num" style="{% if comandas_por_cobrar.count > 0 %}color:#fde047;{% endif %}">
+      {{ comandas_por_cobrar.count }}
+    </div>
+    <div class="cj-stat-sub">comandas cerradas</div>
+  </div>
+  {% if apertura_activa %}
+  <div class="cj-stat">
+    <div class="cj-stat-label">Fondo inicial</div>
+    <div class="cj-stat-num">${{ apertura_activa.monto_inicial|floatformat:0 }}</div>
+    <div class="cj-stat-sub">apertura de hoy</div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-8">
+    <div class="cj-card">
+      <h2 class="cj-section-title">Comandas Listas para Cobrar</h2>
+      {% if apertura_activa %}
+        <div class="cj-comanda-grid">
+          {% for comanda in comandas_por_cobrar %}
+          <div class="cj-comanda-card">
+            <div class="cj-comanda-mesa">Mesa {{ comanda.mesa.numero }}</div>
+            <div class="cj-comanda-garzon">
+              <i class="bi bi-person"></i> {{ comanda.garzon.get_full_name|default:comanda.garzon.username }}
+            </div>
+            <div class="cj-comanda-total">${{ comanda.get_total|floatformat:0 }}</div>
+            <div class="cj-comanda-items">
+              {{ comanda.get_total_items }} item{{ comanda.get_total_items|pluralize:"s" }} &middot;
+              {{ comanda.num_comensales }} comensal{{ comanda.num_comensales|pluralize:"es" }}
+            </div>
+            <a href="{% url 'caja:registrar_pago' comanda.pk %}" class="cj-btn-cobrar">
+              <i class="bi bi-credit-card me-1"></i> Cobrar
+            </a>
+          </div>
+          {% empty %}
+          <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--bc-muted);">
+            <div style="font-size:2rem;opacity:0.3;margin-bottom:8px;"><i class="bi bi-check-circle"></i></div>
+            <p style="font-family:var(--bc-serif);font-style:italic;">Sin comandas pendientes de cobro</p>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align:center;padding:32px;color:var(--bc-muted);">
+          <div style="font-size:2.5rem;opacity:0.3;margin-bottom:12px;"><i class="bi bi-lock"></i></div>
+          <p style="font-family:var(--bc-serif);font-style:italic;">Abre la caja para comenzar a cobrar</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="cj-card">
+      <h2 class="cj-section-title">Resumen del Día</h2>
+      <table class="cj-resumen-table">
+        {% for metodo, data in resumen_metodos.items %}
+        <tr>
+          <td>
+            {% if metodo == 'efectivo' %}<i class="bi bi-cash me-2" style="color:var(--bc-gold);"></i>
+            {% elif 'tarjeta' in metodo %}<i class="bi bi-credit-card me-2" style="color:var(--bc-gold);"></i>
+            {% else %}<i class="bi bi-bank me-2" style="color:var(--bc-gold);"></i>
+            {% endif %}
+            {{ data.label }}
+          </td>
+          <td>${{ data.total|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+        <tr style="border-top:1px solid rgba(212,175,55,0.2);">
+          <td><strong style="color:var(--bc-cream);">TOTAL</strong></td>
+          <td><strong>${{ total_hoy|floatformat:0 }}</strong></td>
+        </tr>
+        <tr>
+          <td style="color:var(--bc-muted);">+ Propinas</td>
+          <td style="color:var(--bc-muted);">${{ propinas_hoy|floatformat:0 }}</td>
+        </tr>
+      </table>
+    </div>
+    {% if apertura_activa %}
+    <div class="cj-card" style="border-color:rgba(34,197,94,0.2);">
+      <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 8px;">Caja abierta desde</p>
+      <p style="font-family:var(--bc-serif);font-size:15px;color:var(--bc-cream);margin:0 0 4px;">{{ apertura_activa.solicitada_at|date:"H:i" }} hrs</p>
+      <p style="font-family:var(--bc-sans);font-size:12px;color:var(--bc-muted);margin:0;">Autorizada por: {{ apertura_activa.autorizador.get_full_name|default:apertura_activa.autorizador.username|default:"—" }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

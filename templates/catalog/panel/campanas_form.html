@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Nueva Campaña · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card" style="max-width:620px;">
+  <div class="pn-section-title">
+    <h2>Nueva Campaña</h2>
+    <a href="{% url 'catalog:panel_campanas' %}" class="pn-btn-outline">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="pn-form-group">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}
+        <p style="font-size:11px;color:var(--bc-muted);margin-top:4px;">
+          {{ field.help_text }}
+        </p>
+      {% endif %}
+      {% for error in field.errors %}
+        <p style="font-size:11px;color:#fca5a5;margin-top:4px;">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <div style="display:flex;gap:12px;margin-top:20px;">
+      <button type="submit" class="pn-btn-gold">
+        <i class="bi bi-check-lg"></i> Crear Campaña
+      </button>
+      <a href="{% url 'catalog:panel_campanas' %}" class="pn-btn-outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

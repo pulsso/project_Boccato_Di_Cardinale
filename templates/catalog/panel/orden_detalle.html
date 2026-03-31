@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Orden #{{ orden.id }} · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-8">
+    <div class="pn-card">
+      <div class="pn-section-title">
+        <h2>Orden #{{ orden.id }}</h2>
+        <a href="{% url 'catalog:panel_ordenes' %}" class="pn-btn-outline">
+          <i class="bi bi-arrow-left"></i> Volver
+        </a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+        <div>
+          <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;
+             text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Cliente</p>
+          <p style="font-family:var(--bc-sans);font-size:14px;
+             color:var(--bc-cream);margin:0;">{{ orden.user.username }}</p>
+          <p style="font-family:var(--bc-sans);font-size:12px;
+             color:var(--bc-muted);margin:0;">{{ orden.user.email }}</p>
+        </div>
+        <div>
+          <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;
+             text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Fecha</p>
+          <p style="font-family:var(--bc-sans);font-size:14px;
+             color:var(--bc-cream);margin:0;">{{ orden.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+        {% if orden.shipping_address %}
+        <div style="grid-column:span 2;">
+          <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;
+             text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Dirección</p>
+          <p style="font-family:var(--bc-sans);font-size:13px;
+             color:var(--bc-cream);margin:0;">{{ orden.shipping_address }}</p>
+        </div>
+        {% endif %}
+        {% if orden.notes %}
+        <div style="grid-column:span 2;">
+          <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;
+             text-transform:uppercase;color:var(--bc-muted);margin:0 0 4px;">Notas</p>
+          <p style="font-family:var(--bc-serif);font-style:italic;font-size:13px;
+             color:var(--bc-muted);margin:0;">{{ orden.notes }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <table class="pn-table">
+        <thead>
+          <tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          {% for item in orden.items.all %}
+          <tr>
+            <td>{{ item.product.name|default:"(eliminado)" }}</td>
+            <td style="color:var(--bc-muted);">${{ item.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);">
+              ${{ item.subtotal|floatformat:0 }}
+            </td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="3"
+                style="text-align:right;font-family:var(--bc-sans);font-size:12px;
+                       letter-spacing:1px;text-transform:uppercase;color:var(--bc-muted);">
+              Total
+            </td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);
+                       font-size:20px;font-weight:600;">
+              ${{ orden.get_total|floatformat:0 }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="pn-card">
+      <div class="pn-section-title"><h2>Estado de la Orden</h2></div>
+      <p style="font-family:var(--bc-sans);font-size:12px;
+         color:var(--bc-muted);margin-bottom:16px;">
+        Estado actual:
+        <span class="pn-badge pn-status-{{ orden.status }}">
+          {{ orden.get_status_display }}
+        </span>
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="pn-form-group">
+          <label>Cambiar estado</label>
+          <select name="status">
+            {% for val, label in status_choices %}
+              <option value="{{ val }}"
+                      {% if val == orden.status %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="pn-btn-gold"
+                style="width:100%;justify-content:center;">
+          <i class="bi bi-check-lg"></i> Actualizar Estado
+        </button>
+      </form>
+
+      <div style="margin-top:20px;padding-top:20px;
+                  border-top:1px solid rgba(212,175,55,0.1);">
+        <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;
+           text-transform:uppercase;color:var(--bc-muted);margin-bottom:10px;">Pago</p>
+        {% if orden.paid %}
+          <span class="pn-badge pn-badge-green">
+            <i class="bi bi-check-circle me-1"></i>Confirmado
+          </span>
+          {% if orden.stripe_payment_id %}
+          <p style="font-size:11px;color:var(--bc-muted);margin-top:8px;
+             word-break:break-all;">ID: {{ orden.stripe_payment_id }}</p>
+          {% endif %}
+        {% else %}
+          <span class="pn-badge pn-badge-red">Sin confirmar</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Auditoria de Transacciones{% endblock %}
+
+{% block content %}
+<style>
+  .aud-stats { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px; }
+  .aud-stat { background:var(--bc-surface);border:1px solid rgba(212,175,55,0.12);border-radius:4px;padding:16px 18px; }
+  .aud-stat-label { font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--bc-muted);margin-bottom:6px; }
+  .aud-stat-num { font-family:var(--bc-serif);font-size:24px;font-weight:400;color:var(--bc-gold); }
+  .aud-table { width:100%;border-collapse:collapse; }
+  .aud-table th { font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);padding:10px 12px;text-align:left;border-bottom:1px solid rgba(212,175,55,0.1);white-space:nowrap; }
+  .aud-table td { font-family:var(--bc-sans);font-size:12px;color:var(--bc-cream);padding:10px 12px;border-bottom:1px solid rgba(212,175,55,0.05);vertical-align:middle; }
+  .aud-table tr:hover td { background:rgba(212,175,55,0.02); }
+  .aud-txn { font-family:var(--bc-sans);font-size:11px;color:var(--bc-gold);font-weight:500;white-space:nowrap; }
+  .aud-badge { font-size:9px;letter-spacing:1px;text-transform:uppercase;font-family:var(--bc-sans);padding:3px 8px;border-radius:2px;white-space:nowrap; }
+  .b-pago { background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:#86efac; }
+  .b-apertura { background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);color:#93c5fd; }
+  .b-cierre { background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);color:#d8b4fe; }
+  .b-anulacion { background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5; }
+  .b-transferencia { background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);color:var(--bc-gold); }
+  .b-rechazo { background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.18);color:#fca5a5; }
+</style>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(212,175,55,0.12);flex-wrap:wrap;gap:12px;">
+  <h1 style="font-family:var(--bc-serif);font-size:24px;font-weight:400;color:var(--bc-cream);margin:0;">Auditoria de Transacciones</h1>
+  <a href="{% url 'caja:tesorero_dashboard' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">← Tesorero</a>
+</div>
+
+<div class="aud-stats">
+  <div class="aud-stat">
+    <div class="aud-stat-label">Total transacciones</div>
+    <div class="aud-stat-num">{{ total_txns }}</div>
+  </div>
+  <div class="aud-stat">
+    <div class="aud-stat-label">Total cobrado</div>
+    <div class="aud-stat-num">${{ total_monto|floatformat:0 }}</div>
+  </div>
+  <div class="aud-stat">
+    <div class="aud-stat-label">Total anulado</div>
+    <div class="aud-stat-num" style="color:#fca5a5;">${{ total_anulaciones|floatformat:0 }}</div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div style="background:var(--bc-surface);border:1px solid rgba(212,175,55,0.12);border-radius:4px;padding:20px;margin-bottom:20px;">
+  <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+    <div>
+      <label style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);display:block;margin-bottom:6px;">Desde</label>
+      <input type="date" name="desde" value="{{ desde_sel }}" style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:8px 12px;font-family:var(--bc-sans);font-size:13px;">
+    </div>
+    <div>
+      <label style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);display:block;margin-bottom:6px;">Hasta</label>
+      <input type="date" name="hasta" value="{{ hasta_sel }}" style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:8px 12px;font-family:var(--bc-sans);font-size:13px;">
+    </div>
+    <div>
+      <label style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);display:block;margin-bottom:6px;">Tipo</label>
+      <select name="tipo" style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:8px 12px;font-family:var(--bc-sans);font-size:13px;">
+        <option value="">Todos</option>
+        {% for val, label in tipo_choices %}
+          <option value="{{ val }}" {% if val == tipo_sel %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);display:block;margin-bottom:6px;">Usuario</label>
+      <select name="usuario" style="background:var(--bc-surface2);border:1px solid rgba(212,175,55,0.18);color:var(--bc-cream);border-radius:2px;padding:8px 12px;font-family:var(--bc-sans);font-size:13px;">
+        <option value="">Todos</option>
+        {% for u in usuarios %}
+          <option value="{{ u.pk }}" {% if u.pk|stringformat:"s" == usuario_sel %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" style="background:transparent;border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;cursor:pointer;">
+      <i class="bi bi-funnel me-1"></i> Filtrar
+    </button>
+  </form>
+</div>
+
+<!-- Tabla -->
+<div style="background:var(--bc-surface);border:1px solid rgba(212,175,55,0.12);border-radius:4px;padding:20px;overflow-x:auto;">
+  <table class="aud-table">
+    <thead>
+      <tr><th>N° TXN</th><th>Tipo</th><th>Monto</th><th>Usuario</th><th>Autorizador</th><th>Descripcion</th><th>IP</th><th>Fecha</th></tr>
+    </thead>
+    <tbody>
+      {% for txn in txns %}
+      <tr>
+        <td class="aud-txn">TXN-{{ txn.numero_transaccion|stringformat:"08d" }}</td>
+        <td>
+          <span class="aud-badge {% if txn.tipo == 'pago' %}b-pago{% elif txn.tipo == 'apertura_caja' %}b-apertura{% elif txn.tipo == 'cierre_caja' %}b-cierre{% elif txn.tipo == 'anulacion' %}b-anulacion{% elif 'transferencia' in txn.tipo %}b-transferencia{% else %}b-rechazo{% endif %}">
+            {{ txn.get_tipo_display }}
+          </span>
+        </td>
+        <td style="color:var(--bc-gold);font-family:var(--bc-serif);">${{ txn.monto|floatformat:0 }}</td>
+        <td>{{ txn.usuario.get_full_name|default:txn.usuario.username|default:"—" }}</td>
+        <td style="color:var(--bc-muted);">{{ txn.autorizador.get_full_name|default:txn.autorizador.username|default:"—" }}</td>
+        <td style="font-size:11px;color:var(--bc-muted);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ txn.descripcion }}</td>
+        <td style="font-size:11px;color:var(--bc-muted);">{{ txn.ip_address|default:"—" }}</td>
+        <td style="font-size:11px;color:var(--bc-muted);white-space:nowrap;">{{ txn.fecha|date:"d/m/Y H:i:s" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;color:var(--bc-muted);padding:32px;font-family:var(--bc-serif);font-style:italic;">Sin transacciones registradas</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if total_txns > 200 %}
+  <p style="font-family:var(--bc-sans);font-size:12px;color:var(--bc-muted);text-align:center;margin-top:16px;">
+    Mostrando 200 de {{ total_txns }} transacciones. Use los filtros para acotar.
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

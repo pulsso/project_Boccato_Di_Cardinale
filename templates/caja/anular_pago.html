@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Anular Pago #{{ pago.id }}{% endblock %}
+{% block content %}
+<div style="max-width:520px;">
+  <a href="{% url 'caja:tesorero_dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;display:block;margin-bottom:20px;">← Volver al Panel Tesorero</a>
+  <div style="background:var(--bc-surface);border:1px solid rgba(239,68,68,0.25);border-radius:4px;padding:28px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <div style="font-size:1.8rem;color:#f87171;">⚠</div>
+      <h1 style="font-family:var(--bc-serif);font-size:22px;font-weight:400;color:var(--bc-cream);margin:0;">Anular / Revertir Pago</h1>
+    </div>
+    <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:3px;padding:14px 16px;margin-bottom:20px;">
+      <p style="font-family:var(--bc-sans);font-size:12px;color:#fca5a5;margin:0;"><i class="bi bi-exclamation-triangle me-2"></i>Esta accion es irreversible. Se registrara en el libro de auditoria con tu usuario como autorizador.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(212,175,55,0.1);">
+      <div>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 3px;">Pago</p>
+        <p style="font-family:var(--bc-sans);font-size:14px;color:var(--bc-cream);margin:0;">#{{ pago.id }}</p>
+      </div>
+      <div>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 3px;">Mesa</p>
+        <p style="font-family:var(--bc-sans);font-size:14px;color:var(--bc-cream);margin:0;">{{ pago.comanda.mesa.numero }}</p>
+      </div>
+      <div>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 3px;">Metodo</p>
+        <p style="font-family:var(--bc-sans);font-size:14px;color:var(--bc-cream);margin:0;">{{ pago.get_metodo_display }}</p>
+      </div>
+      <div>
+        <p style="font-family:var(--bc-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin:0 0 3px;">Monto</p>
+        <p style="font-family:var(--bc-serif);font-size:18px;color:#fca5a5;margin:0;">${{ pago.monto_total|floatformat:0 }}</p>
+      </div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div style="margin-bottom:18px;">
+        <label style="display:block;font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-muted);margin-bottom:7px;">Motivo de la anulacion *</label>
+        {{ form.motivo }}
+        {% for error in form.motivo.errors %}<p style="font-size:11px;color:#fca5a5;margin-top:4px;">{{ error }}</p>{% endfor %}
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button type="submit"
+                style="flex:1;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-family:var(--bc-sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:2px;cursor:pointer;"
+                onclick="return confirm('Confirmas la anulacion? Esta accion no se puede deshacer.')">
+          <i class="bi bi-x-circle me-1"></i> Confirmar Anulacion
+        </button>
+        <a href="{% url 'caja:tesorero_dashboard' %}"
+           style="background:transparent;border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:12px 18px;border-radius:2px;text-decoration:none;display:flex;align-items:center;">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

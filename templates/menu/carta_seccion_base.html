@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load static %}
+{% load menu_extras %}
+{% block title %}{{ tipo_label }} &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+/* ── VARIABLES CARTA BOCCATO (modo claro + imprimible) ── */
+.carta-wrap, .sub-carta {
+  --c-bg:      #faf8f4;
+  --c-surface: #ffffff;
+  --c-gold:    #b8962e;
+  --c-gold2:   #d4af37;
+  --c-text:    #1a1208;
+  --c-muted:   #6b5a3e;
+  --c-border:  rgba(180,150,46,0.18);
+  --c-serif:   'Cormorant Garamond','Georgia',serif;
+  --c-sans:    'Jost','Inter',sans-serif;
+}
+
+.sub-carta {
+  background: var(--c-bg);
+  color: var(--c-text);
+  max-width: 860px;
+  margin: -24px auto 0;
+  padding: 0 0 60px;
+  font-family: var(--c-serif);
+}
+
+/* ── HEADER ── */
+.sub-carta-header {
+  padding: 40px 40px 28px;
+  border-bottom: 2px solid var(--c-text);
+  background: var(--c-surface);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.sub-carta-eyebrow {
+  font-family: var(--c-sans);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  display: block;
+  margin-bottom: 6px;
+}
+.sub-carta-title {
+  font-family: var(--c-serif);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 400;
+  color: var(--c-text);
+  margin: 0 0 4px;
+}
+.sub-carta-subtitle {
+  font-family: var(--c-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--c-muted);
+  margin: 0;
+}
+
+/* ── BODY ── */
+.sub-carta-body { padding: 0 40px; background: var(--c-surface); }
+
+/* Subcategoría */
+.sc-cat-title {
+  font-family: var(--c-sans);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  padding: 28px 0 12px;
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc-cat-title::before { content: '✦'; color: var(--c-gold); font-size: 8px; }
+
+/* ── ÍTEM — estilo carta fina con precio derecha ── */
+.sc-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(180,150,46,0.07);
+  align-items: start;
+  transition: background 0.15s;
+}
+.sc-item:last-child { border-bottom: none; }
+.sc-item:hover {
+  background: rgba(180,150,46,0.03);
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.sc-item-img {
+  width: 76px; height: 76px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--c-border);
+  float: right;
+  margin: 0 0 8px 16px;
+}
+.sc-nombre-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+.sc-nombre {
+  font-family: var(--c-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+.sc-badge {
+  font-family: var(--c-sans);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+}
+.sc-badge-chef   { background: var(--c-gold); color: white; }
+.sc-badge-oferta { background: #c0392b; color: white; }
+
+.sc-desc {
+  font-family: var(--c-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--c-muted);
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+.sc-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.sc-meta-tag { font-family: var(--c-sans); font-size: 11px; color: var(--c-muted); }
+.sc-meta-tag strong { color: var(--c-text); }
+
+/* Precios */
+.sc-precio-col { text-align: right; padding-top: 4px; min-width: 100px; }
+.sc-precio {
+  font-family: var(--c-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--c-text);
+  display: block;
+  white-space: nowrap;
+}
+.sc-precio-original {
+  font-family: var(--c-sans);
+  font-size: 12px;
+  color: #bbb;
+  text-decoration: line-through;
+  display: block;
+  text-align: right;
+}
+.sc-precio-oferta {
+  font-family: var(--c-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: #c0392b;
+  display: block;
+}
+.sc-precio-pp {
+  font-family: var(--c-sans);
+  font-size: 11px;
+  color: var(--c-muted);
+  display: block;
+  white-space: nowrap;
+  margin-top: 3px;
+}
+
+/* Vacío */
+.sc-empty { padding: 48px 0; text-align: center; }
+.sc-empty p { font-family: var(--c-serif); font-style: italic; color: var(--c-muted); margin: 8px 0 0; }
+
+/* ── IMPRESIÓN ── */
+@media print {
+  .sub-carta-header  { page-break-after: avoid; }
+  .sc-item           { page-break-inside: avoid; }
+  .no-print          { display: none !important; }
+  body, .sub-carta   { background: white !important; color: black !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+
+<div class="sub-carta">
+
+  <!-- HEADER -->
+  <div class="sub-carta-header">
+    <div>
+      <span class="sub-carta-eyebrow">Boccato di Cardinale &middot; Santiago de Chile</span>
+      <h1 class="sub-carta-title">{% block carta_title %}{{ tipo_label }}{% endblock %}</h1>
+      <p class="sub-carta-subtitle">{% block carta_subtitle %}Boutique Gourmet &middot; Desde 1987{% endblock %}</p>
+    </div>
+    <div class="no-print" style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+      <a href="{% url 'menu:carta_home' %}"
+         style="font-family:var(--c-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c-gold);text-decoration:none;display:flex;align-items:center;gap:5px;">
+        ← Volver a la carta
+      </a>
+      <button onclick="window.print()"
+              style="background:transparent;border:1px solid var(--c-border);color:var(--c-gold);font-family:var(--c-sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;border-radius:2px;cursor:pointer;">
+        🖨 Imprimir
+      </button>
+    </div>
+  </div>
+
+  <!-- CUERPO -->
+  <div class="sub-carta-body">
+    {% if categorias %}
+      {% for c in categorias %}
+
+      <div class="sc-cat-title">
+        {{ c.categoria.nombre }}
+        {% if c.categoria.descripcion %}
+          <span style="font-family:var(--c-serif);font-style:italic;font-size:12px;color:var(--c-muted);letter-spacing:0;text-transform:none;font-weight:300;">— {{ c.categoria.descripcion }}</span>
+        {% endif %}
+      </div>
+
+      {% for item in c.items %}
+      <div class="sc-item">
+        <div>
+          {% if item.display_image_url %}
+            <img src="{{ item.display_image_url }}" class="sc-item-img" alt="{{ item.nombre }}">
+          {% endif %}
+          <div class="sc-nombre-row">
+            <span class="sc-nombre">{{ item.nombre }}</span>
+            {% if item.destacado %}<span class="sc-badge sc-badge-chef">✦ Chef</span>{% endif %}
+            {% if item.tiene_oferta %}<span class="sc-badge sc-badge-oferta">Oferta</span>{% endif %}
+          </div>
+          {% if item.descripcion %}<p class="sc-desc">{{ item.descripcion }}</p>{% endif %}
+          {% if item.ingredientes %}<p class="sc-desc" style="font-style:normal;font-size:12px;color:var(--c-muted);">{{ item.ingredientes }}</p>{% endif %}
+          {% if item.bodega or item.cepa or item.anno or item.origen or item.graduacion or item.maridaje %}
+          <div class="sc-meta">
+            {% if item.bodega %}<span class="sc-meta-tag"><strong>Bodega:</strong> {{ item.bodega }}</span>{% endif %}
+            {% if item.cepa %}<span class="sc-meta-tag"><strong>Cepa:</strong> {{ item.cepa }}</span>{% endif %}
+            {% if item.anno %}<span class="sc-meta-tag"><strong>A&ntilde;o:</strong> {{ item.anno }}</span>{% endif %}
+            {% if item.origen %}<span class="sc-meta-tag"><strong>Valle:</strong> {{ item.origen }}</span>{% endif %}
+            {% if item.graduacion %}<span class="sc-meta-tag"><strong>Vol:</strong> {{ item.graduacion }}</span>{% endif %}
+            {% if item.maridaje %}<span class="sc-meta-tag"><strong>Maridaje:</strong> {{ item.maridaje }}</span>{% endif %}
+          </div>
+          {% endif %}
+          {% if item.min_personas %}
+          <div class="sc-meta" style="margin-top:4px;">
+            <span class="sc-meta-tag"><strong>M&iacute;nimo:</strong> {{ item.min_personas }} personas</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="sc-precio-col">
+          {% if item.tiene_oferta %}
+            <span class="sc-precio-original">${{ item.precio|floatformat:0 }}</span>
+            <span class="sc-precio-oferta">${{ item.precio_oferta|floatformat:0 }}</span>
+          {% else %}
+            <span class="sc-precio">${{ item.precio|floatformat:0 }}</span>
+          {% endif %}
+          {% if item.precio_persona %}
+          <span class="sc-precio-pp">${{ item.precio_persona|floatformat:0 }}/persona</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+      {% endfor %}
+    {% else %}
+    <div class="sc-empty">
+      <div style="font-size:2.5rem;opacity:0.3;">{% block carta_icon %}🍽️{% endblock %}</div>
+      <p>Secci&oacute;n en preparaci&oacute;n.<br>
+      <small>Agrega items desde el
+        <a href="{% url 'menu:panel_menu' %}" style="color:var(--c-gold);">panel de men&uacute;s</a>.
+      </small></p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- FOOTER CARTA -->
+  <div style="padding:24px 40px;text-align:center;border-top:1px solid var(--c-border);margin-top:20px;background:var(--c-surface);">
+    <p style="font-family:var(--c-serif);font-style:italic;font-size:15px;color:var(--c-gold);margin:0 0 4px;">Boccato di Cardinale</p>
+    <p style="font-family:var(--c-sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--c-muted);margin:0;">
+      Boutique Gourmet &middot; Santiago de Chile &middot; Desde 1987
+    </p>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Despacho | Boccato{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h2 class="fw-bold mb-0">Panel de despacho</h2>
+  <span class="text-muted">Ordenes aprobadas por tesoreria listas para procesar</span>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table">
+        <thead class="table-dark">
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Boleta</th>
+            <th>Estado</th>
+            <th>Entrega</th>
+            <th>ETA</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+          <tr>
+            <td>#{{ task.order.id }}<br><small class="text-muted">{{ task.order.folio }}</small></td>
+            <td>{{ task.order.user.get_full_name|default:task.order.user.username }}</td>
+            <td>{{ task.order.payment.treasury_number_display|default:"Pendiente" }}</td>
+            <td>{{ task.get_status_display }}</td>
+            <td>{{ task.get_delivery_method_display|default:"Sin definir" }}</td>
+            <td>{{ task.estimated_delivery_minutes }} min</td>
+            <td>${{ task.order.get_grand_total|floatformat:0 }}</td>
+            <td><a class="btn btn-sm btn-outline-dark" href="{% url 'orders:dispatch_order_detail' task.order.id %}">Abrir</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">Sin tareas de despacho por ahora.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

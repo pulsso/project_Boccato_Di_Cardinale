@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Nueva Oferta · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card" style="max-width:560px;">
+  <div class="pn-section-title">
+    <h2>Nueva Oferta</h2>
+    <a href="{% url 'catalog:panel_ofertas' %}" class="pn-btn-outline">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="pn-form-group">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}
+        <p style="font-size:11px;color:#fca5a5;margin-top:4px;">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <div style="display:flex;gap:12px;margin-top:20px;">
+      <button type="submit" class="pn-btn-gold">
+        <i class="bi bi-check-lg"></i> Crear Oferta
+      </button>
+      <a href="{% url 'catalog:panel_ofertas' %}" class="pn-btn-outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

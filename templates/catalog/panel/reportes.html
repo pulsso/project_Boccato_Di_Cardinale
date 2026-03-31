@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Reportes · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<style>
+  .pn-metric {
+    background: var(--bc-surface);
+    border: 1px solid rgba(212,175,55,0.12);
+    border-radius: 4px; padding: 22px 24px;
+  }
+  .pn-metric-label {
+    font-family: var(--bc-sans); font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--bc-muted); margin-bottom: 8px;
+  }
+  .pn-metric-value {
+    font-family: var(--bc-serif); font-size: 30px;
+    font-weight: 400; color: var(--bc-gold); line-height: 1;
+  }
+  .pn-metric-sub {
+    font-family: var(--bc-sans); font-size: 11px;
+    color: var(--bc-muted); margin-top: 5px;
+  }
+</style>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:14px;margin-bottom:32px;">
+  <div class="pn-metric">
+    <div class="pn-metric-label">Ventas este mes</div>
+    <div class="pn-metric-value">${{ ventas_mes|floatformat:0 }}</div>
+    <div class="pn-metric-sub">{{ ordenes_mes }} órdenes</div>
+  </div>
+  <div class="pn-metric">
+    <div class="pn-metric-label">Ventas históricas</div>
+    <div class="pn-metric-value">${{ ventas_total|floatformat:0 }}</div>
+    <div class="pn-metric-sub">{{ ordenes_total }} órdenes totales</div>
+  </div>
+  <div class="pn-metric">
+    <div class="pn-metric-label">Ticket promedio</div>
+    <div class="pn-metric-value">
+      {% if ordenes_total > 0 %}
+        ${% widthratio ventas_total ordenes_total 1 %}
+      {% else %}$0{% endif %}
+    </div>
+    <div class="pn-metric-sub">por orden</div>
+  </div>
+  <div class="pn-metric">
+    <div class="pn-metric-label">Sin stock</div>
+    <div class="pn-metric-value"
+         style="{% if productos_sin_stock %}color:#f87171;{% endif %}">
+      {{ productos_sin_stock|length }}
+    </div>
+    <div class="pn-metric-sub">productos agotados</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="pn-card">
+      <div class="pn-section-title"><h2>Top Productos Vendidos</h2></div>
+      <table class="pn-table">
+        <thead>
+          <tr><th>#</th><th>Producto</th><th>Unidades</th></tr>
+        </thead>
+        <tbody>
+          {% for item in top_productos %}
+          <tr>
+            <td style="color:var(--bc-muted);">{{ forloop.counter }}</td>
+            <td>{{ item.product__name|default:"(eliminado)" }}</td>
+            <td><span class="pn-badge pn-badge-gold">{{ item.total_vendido }}</span></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3"
+                style="text-align:center;color:var(--bc-muted);padding:20px;">
+              Sin ventas aún
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="pn-card">
+      <div class="pn-section-title"><h2>Órdenes por Estado</h2></div>
+      <table class="pn-table">
+        <thead>
+          <tr><th>Estado</th><th>Cantidad</th></tr>
+        </thead>
+        <tbody>
+          {% for item in ordenes_por_status %}
+          <tr>
+            <td>
+              <span class="pn-badge pn-status-{{ item.status }}">
+                {{ item.status }}
+              </span>
+            </td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:18px;">
+              {{ item.total }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2"
+                style="text-align:center;color:var(--bc-muted);padding:20px;">
+              Sin datos
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if productos_sin_stock %}
+  <div class="col-12">
+    <div class="pn-card" style="border-color:rgba(239,68,68,0.25);">
+      <div class="pn-section-title">
+        <h2 style="color:#f87171;">Productos Sin Stock</h2>
+        <a href="{% url 'catalog:panel_productos' %}" class="pn-btn-outline">
+          Gestionar
+        </a>
+      </div>
+      <table class="pn-table">
+        <thead>
+          <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for p in productos_sin_stock %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td style="color:var(--bc-muted);">{{ p.category.name }}</td>
+            <td style="color:var(--bc-gold);">${{ p.price }}</td>
+            <td>
+              <a href="{% url 'catalog:panel_producto_editar' p.pk %}"
+                 class="pn-btn-outline" style="padding:4px 10px;font-size:10px;">
+                <i class="bi bi-pencil"></i> Editar stock
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

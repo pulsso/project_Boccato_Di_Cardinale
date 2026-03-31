@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Terraza &amp; Bar &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+  .tr-hero {
+    background: #0d0a07; border: 1px solid rgba(212,175,55,0.18);
+    border-radius: 4px; padding: 56px 52px; margin-bottom: 52px;
+    position: relative; overflow: hidden; text-align: center;
+  }
+  .tr-hero::before {
+    content: ''; position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .tr-hero-line { width: 48px; height: 1px; background: var(--bc-gold); margin: 0 auto 20px; }
+  .tr-hero-badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(212,175,55,0.28); color: var(--bc-gold); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; padding: 5px 16px; margin-bottom: 24px; font-family: var(--bc-sans); }
+  .tr-hero-badge-dot { width: 5px; height: 5px; background: var(--bc-gold); border-radius: 50%; animation: pulse-gold 2.5s ease-in-out infinite; }
+  @keyframes pulse-gold { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.6); } }
+  .tr-hero h1 { font-family: var(--bc-serif); font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 400; color: var(--bc-cream); margin: 0 0 8px; }
+  .tr-hero h1 .gold { color: var(--bc-gold); font-style: italic; }
+  .tr-hero p { font-family: var(--bc-serif); font-style: italic; font-size: 17px; color: var(--bc-muted); max-width: 560px; margin: 0 auto 32px; line-height: 1.7; }
+  .tr-hero-pills { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; padding-top: 24px; border-top: 1px solid rgba(212,175,55,0.1); }
+  .tr-hero-pills span { color: #5a4a3a; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); display: flex; align-items: center; gap: 7px; }
+  .tr-hero-pills span::before { content: '✦'; color: var(--bc-gold); font-size: 8px; }
+
+  .tr-section { margin-bottom: 52px; }
+  .tr-section-title { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(212,175,55,0.12); }
+  .tr-section-title::before { content: ''; width: 3px; height: 28px; background: var(--bc-gold); border-radius: 2px; flex-shrink: 0; }
+  .tr-section-title h2 { font-family: var(--bc-serif); font-size: 24px; font-weight: 400; color: var(--bc-cream); margin: 0; }
+  .tr-section-title span { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-gold); font-family: var(--bc-sans); }
+
+  .tr-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .tr-gallery-grid .tr-img-featured { grid-column: span 2; grid-row: span 2; }
+  .tr-img-card { position: relative; overflow: hidden; border: 1px solid rgba(212,175,55,0.15); border-radius: 4px; cursor: pointer; }
+  .tr-img-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(10,8,6,0.85) 100%); transition: opacity 0.3s; }
+  .tr-img-card:hover::after { opacity: 0.6; }
+  .tr-img-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s ease, filter 0.4s; filter: brightness(0.8) saturate(0.85); min-height: 200px; }
+  .tr-img-featured img { min-height: 412px; }
+  .tr-img-card:hover img { transform: scale(1.04); filter: brightness(0.9) saturate(1); }
+  .tr-img-label { position: absolute; bottom: 16px; left: 18px; right: 18px; z-index: 2; }
+  .tr-img-label-tag { font-family: var(--bc-sans); font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--bc-gold); margin-bottom: 3px; }
+  .tr-img-label-title { font-family: var(--bc-serif); font-size: 16px; font-style: italic; color: var(--bc-cream); margin: 0; }
+
+  .tr-seccion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .tr-seccion-card { position: relative; overflow: hidden; border: 1px solid rgba(212,175,55,0.15); border-radius: 4px; cursor: pointer; }
+  .tr-seccion-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(10,8,6,0.9) 100%); }
+  .tr-seccion-card img { width: 100%; height: 240px; object-fit: cover; display: block; filter: brightness(0.8) saturate(0.85); transition: transform 0.6s, filter 0.4s; }
+  .tr-seccion-card:hover img { transform: scale(1.04); filter: brightness(0.95) saturate(1); }
+  .tr-seccion-card .tr-img-label { position: absolute; bottom: 16px; left: 18px; right: 18px; z-index: 2; }
+
+  .tr-space-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; overflow: hidden; transition: border-color 0.3s, transform 0.3s; animation: card-in 0.6s ease both; }
+  .tr-space-card:hover { border-color: var(--bc-gold); transform: translateY(-4px); }
+  @keyframes card-in { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .tr-space-img { width: 100%; height: 200px; object-fit: cover; display: block; filter: brightness(0.8) saturate(0.85); transition: filter 0.4s; }
+  .tr-space-card:hover .tr-space-img { filter: brightness(0.95) saturate(1); }
+  .tr-space-body { padding: 20px; }
+  .tr-space-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-gold); font-family: var(--bc-sans); margin-bottom: 6px; }
+  .tr-space-name { font-family: var(--bc-serif); font-size: 18px; font-weight: 600; color: var(--bc-cream); margin: 0 0 8px; }
+  .tr-space-desc { font-family: var(--bc-serif); font-style: italic; font-size: 13px; color: var(--bc-muted); line-height: 1.55; margin: 0; }
+  .tr-space-footer { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.1); flex-wrap: wrap; }
+  .tr-space-pill { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); border: 1px solid rgba(212,175,55,0.2); color: var(--bc-muted); padding: 4px 10px; border-radius: 2px; }
+
+  .tr-agenda { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.15); border-radius: 4px; overflow: hidden; }
+  .tr-agenda-header { background: #110e0a; padding: 20px 28px; border-bottom: 1px solid rgba(212,175,55,0.12); display: flex; align-items: center; justify-content: space-between; }
+  .tr-agenda-header h3 { font-family: var(--bc-serif); font-size: 20px; font-weight: 400; color: var(--bc-cream); margin: 0; }
+  .tr-agenda-header span { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-gold); font-family: var(--bc-sans); }
+  .tr-agenda-day { display: flex; align-items: center; padding: 20px 28px; border-bottom: 1px solid rgba(212,175,55,0.08); gap: 24px; transition: background 0.2s; }
+  .tr-agenda-day:last-child { border-bottom: none; }
+  .tr-agenda-day:hover { background: rgba(212,175,55,0.03); }
+  .tr-agenda-day-name { font-family: var(--bc-sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-gold); min-width: 100px; }
+  .tr-agenda-day-closed .tr-agenda-day-name { color: var(--bc-muted); }
+  .tr-agenda-divider { width: 1px; height: 36px; background: rgba(212,175,55,0.15); flex-shrink: 0; }
+  .tr-agenda-info { flex: 1; }
+  .tr-agenda-genre { font-family: var(--bc-serif); font-size: 17px; font-weight: 600; color: var(--bc-cream); margin: 0 0 3px; }
+  .tr-agenda-day-closed .tr-agenda-genre { color: var(--bc-muted); font-style: italic; }
+  .tr-agenda-detail { font-family: var(--bc-serif); font-style: italic; font-size: 13px; color: var(--bc-muted); margin: 0; }
+  .tr-agenda-time { font-family: var(--bc-sans); font-size: 12px; letter-spacing: 1px; color: var(--bc-muted); text-align: right; flex-shrink: 0; }
+  .tr-agenda-badge { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--bc-sans); padding: 4px 10px; border-radius: 2px; white-space: nowrap; }
+  .tr-badge-live { background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.3); color: var(--bc-gold); }
+  .tr-badge-closed { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--bc-muted); }
+
+  .tr-bar-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; overflow: hidden; height: 100%; }
+  .tr-bar-img { width: 100%; height: 260px; object-fit: cover; display: block; filter: brightness(0.8); transition: filter 0.4s; }
+  .tr-bar-card:hover .tr-bar-img { filter: brightness(0.95); }
+  .tr-bar-body { padding: 24px; }
+  .tr-bar-tag { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-gold); font-family: var(--bc-sans); margin-bottom: 8px; }
+  .tr-bar-title { font-family: var(--bc-serif); font-size: 22px; font-weight: 400; color: var(--bc-cream); margin: 0 0 12px; }
+  .tr-bar-desc { font-family: var(--bc-serif); font-style: italic; font-size: 14px; color: var(--bc-muted); line-height: 1.65; margin: 0 0 20px; }
+  .tr-bar-drinks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tr-bar-drink { font-size: 11px; letter-spacing: 1px; font-family: var(--bc-sans); border: 1px solid rgba(212,175,55,0.2); color: var(--bc-muted); padding: 5px 12px; border-radius: 2px; text-transform: uppercase; transition: border-color 0.2s, color 0.2s; }
+  .tr-bar-drink:hover { border-color: var(--bc-gold); color: var(--bc-gold); }
+
+  .tr-cta { background: #110e0a; border: 1px solid rgba(212,175,55,0.18); border-radius: 4px; padding: 48px 40px; text-align: center; margin-top: 52px; position: relative; overflow: hidden; }
+  .tr-cta::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 65%); pointer-events: none; }
+  .tr-cta h2 { font-family: var(--bc-serif); font-size: 28px; font-weight: 400; color: var(--bc-cream); margin: 0 0 10px; }
+  .tr-cta p { font-family: var(--bc-serif); font-style: italic; font-size: 16px; color: var(--bc-muted); margin: 0 0 28px; }
+  .tr-cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .bc-btn-gold { background: var(--bc-gold); color: var(--bc-bg); font-family: var(--bc-sans); font-size: 11px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; padding: 13px 32px; border: none; border-radius: 2px; text-decoration: none; transition: background 0.2s; display: inline-block; }
+  .bc-btn-gold:hover { background: var(--bc-gold-dim); color: var(--bc-bg); }
+  .bc-btn-outline { border: 1px solid rgba(212,175,55,0.35); color: var(--bc-gold); font-family: var(--bc-sans); font-size: 11px; font-weight: 400; letter-spacing: 2.5px; text-transform: uppercase; padding: 13px 32px; border-radius: 2px; text-decoration: none; transition: border-color 0.2s, background 0.2s; display: inline-block; }
+  .bc-btn-outline:hover { border-color: var(--bc-gold); background: var(--bc-gold-glow); color: var(--bc-gold); }
+
+  @media (max-width: 768px) {
+    .tr-gallery-grid { grid-template-columns: 1fr 1fr; }
+    .tr-gallery-grid .tr-img-featured { grid-column: span 2; }
+    .tr-agenda-day { flex-wrap: wrap; gap: 12px; }
+    .tr-agenda-day-name { min-width: auto; }
+  }
+  @media (max-width: 480px) {
+    .tr-gallery-grid { grid-template-columns: 1fr; }
+    .tr-gallery-grid .tr-img-featured { grid-column: span 1; }
+    .tr-seccion-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- HERO -->
+<section class="tr-hero">
+  <div class="tr-hero-line"></div>
+  <div class="tr-hero-badge">
+    <span class="tr-hero-badge-dot"></span>
+    Terraza &amp; Bar &middot; Boccato di Cardinale
+  </div>
+  <h1><span class="gold">Terraza</span> &amp; Bar</h1>
+  <p>Un espacio donde el arte, la m&uacute;sica en vivo y los mejores c&oacute;cteles se encuentran bajo el cielo de Santiago.</p>
+  <div class="tr-hero-pills">
+    <span>Arte &amp; Cultura</span>
+    <span>Salones VIP</span>
+    <span>Bartender</span>
+    <span>M&uacute;sica en Vivo</span>
+    <span>Jazz &amp; Electr&oacute;nica</span>
+    <span>Puros Seleccionados</span>
+  </div>
+</section>
+
+<!-- GALERÍA PRINCIPAL DINÁMICA -->
+<section class="tr-section">
+  <div class="tr-section-title">
+    <h2>Nuestros Espacios</h2><span>Galer&iacute;a</span>
+  </div>
+  <div class="tr-gallery-grid">
+
+    <div class="tr-img-card tr-img-featured">
+      {% if fotos %}
+        <img src="{{ fotos.0.display_image_url }}" alt="{{ fotos.0.titulo }}">
+        <div class="tr-img-label">
+          <div class="tr-img-label-tag">{{ fotos.0.section_label }}</div>
+          <p class="tr-img-label-title">{{ fotos.0.titulo }}</p>
+        </div>
+      {% else %}
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=900&q=80" alt="Terraza">
+        <div class="tr-img-label">
+          <div class="tr-img-label-tag">Terraza Principal</div>
+          <p class="tr-img-label-title">Vista panor&aacute;mica de Santiago</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if fotos_total >= 2 %}
+      {% for foto in fotos %}
+        {% if not forloop.first and forloop.counter <= 5 %}
+        <div class="tr-img-card">
+          <img src="{{ foto.display_image_url }}" alt="{{ foto.titulo }}">
+          <div class="tr-img-label">
+            <div class="tr-img-label-tag">{{ foto.section_label }}</div>
+            <p class="tr-img-label-title">{{ foto.titulo }}</p>
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="tr-img-card">
+        <img src="https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=600&q=80" alt="Arte">
+        <div class="tr-img-label"><div class="tr-img-label-tag">Arte</div><p class="tr-img-label-title">Galer&iacute;a de Arte</p></div>
+      </div>
+      <div class="tr-img-card">
+        <img src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80" alt="Bar">
+        <div class="tr-img-label"><div class="tr-img-label-tag">Bar</div><p class="tr-img-label-title">La Barra</p></div>
+      </div>
+      <div class="tr-img-card">
+        <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80" alt="Música">
+        <div class="tr-img-label"><div class="tr-img-label-tag">M&uacute;sica</div><p class="tr-img-label-title">Escenario en Vivo</p></div>
+      </div>
+      <div class="tr-img-card">
+        <img src="https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=600&q=80" alt="VIP">
+        <div class="tr-img-label"><div class="tr-img-label-tag">VIP</div><p class="tr-img-label-title">Sal&oacute;n Privado</p></div>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- GALERÍA COMPLETA POR SECCIÓN -->
+{% if fotos %}
+<section class="tr-section">
+  <div class="tr-section-title">
+    <h2>Galer&iacute;a Completa</h2>
+    <span>{{ fotos_total }} foto{{ fotos_total|pluralize:"s" }}</span>
+  </div>
+  {% for nombre_sec, lista_fotos in fotos_por_seccion.items %}
+  <div style="margin-bottom:32px;">
+    <p style="font-family:var(--bc-sans);font-size:11px;letter-spacing:2px;
+       text-transform:uppercase;color:var(--bc-gold);margin-bottom:14px;">
+      {{ nombre_sec }}
+    </p>
+    <div class="tr-seccion-grid">
+      {% for foto in lista_fotos %}
+      <div class="tr-seccion-card">
+        <img src="{{ foto.display_image_url }}" alt="{{ foto.titulo }}">
+        <div class="tr-img-label">
+          <div class="tr-img-label-tag">{{ foto.section_label }}</div>
+          <p class="tr-img-label-title">{{ foto.titulo }}</p>
+          {% if foto.descripcion %}
+          <p style="font-family:var(--bc-sans);font-size:11px;color:rgba(245,240,232,0.7);margin:4px 0 0;">
+            {{ foto.descripcion }}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<!-- ESPACIOS -->
+<section class="tr-section">
+  <div class="tr-section-title"><h2>Espacios Disponibles</h2><span>Reserva</span></div>
+  <div class="row g-3">
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="tr-space-card">
+        <img src="https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=600&q=80" class="tr-space-img" alt="Arte">
+        <div class="tr-space-body">
+          <div class="tr-space-tag">Arte &amp; Cultura</div>
+          <h3 class="tr-space-name">Galer&iacute;a de Arte</h3>
+          <p class="tr-space-desc">Exposiciones temporales de artistas locales e internacionales. Inauguraciones cada primer viernes del mes.</p>
+          <div class="tr-space-footer"><span class="tr-space-pill">Hasta 60 personas</span><span class="tr-space-pill">Acceso libre</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="tr-space-card">
+        <img src="https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=600&q=80" class="tr-space-img" alt="VIP">
+        <div class="tr-space-body">
+          <div class="tr-space-tag">Exclusivo</div>
+          <h3 class="tr-space-name">Sal&oacute;n VIP</h3>
+          <p class="tr-space-desc">Espacio privado para celebraciones y reuniones de alto nivel. Servicio personalizado y carta exclusiva.</p>
+          <div class="tr-space-footer"><span class="tr-space-pill">Hasta 20 personas</span><span class="tr-space-pill">Con reserva</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="tr-space-card">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" class="tr-space-img" alt="Reuniones">
+        <div class="tr-space-body">
+          <div class="tr-space-tag">Negocios</div>
+          <h3 class="tr-space-name">Sala de Reuniones</h3>
+          <p class="tr-space-desc">Ambiente sofisticado para reuniones ejecutivas con caf&eacute; de especialidad y catering gourmet.</p>
+          <div class="tr-space-footer"><span class="tr-space-pill">Hasta 12 personas</span><span class="tr-space-pill">Equipado</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="tr-space-card">
+        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&q=80" class="tr-space-img" alt="Terraza">
+        <div class="tr-space-body">
+          <div class="tr-space-tag">Al Aire Libre</div>
+          <h3 class="tr-space-name">Terraza Panor&aacute;mica</h3>
+          <p class="tr-space-desc">Vista a Santiago. Puros, cocteles y m&uacute;sica en vivo los fines de semana.</p>
+          <div class="tr-space-footer"><span class="tr-space-pill">Hasta 80 personas</span><span class="tr-space-pill">Puros permitidos</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LA BARRA -->
+<section class="tr-section">
+  <div class="tr-section-title"><h2>La Barra</h2><span>Bartender &amp; Coctelería</span></div>
+  <div class="row g-3 align-items-stretch">
+    <div class="col-12 col-lg-7">
+      <div class="tr-bar-card">
+        <img src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=900&q=80" class="tr-bar-img" alt="Bartender">
+        <div class="tr-bar-body">
+          <div class="tr-bar-tag">Coctelería de Autor</div>
+          <h3 class="tr-bar-title">Nuestros Bartenders</h3>
+          <p class="tr-bar-desc">Maestros del c&oacute;ctel con técnicas cl&aacute;sicas y creaciones propias. Cada trago es una experiencia sensorial elaborada con los mejores destilados.</p>
+          <div class="tr-bar-drinks">
+            <span class="tr-bar-drink">Pisco Sour</span>
+            <span class="tr-bar-drink">Whisky Premium</span>
+            <span class="tr-bar-drink">Ramazzotti</span>
+            <span class="tr-bar-drink">Negroni</span>
+            <span class="tr-bar-drink">Caf&eacute; Helado</span>
+            <span class="tr-bar-drink">Aperol Spritz</span>
+            <span class="tr-bar-drink">Old Fashioned</span>
+            <span class="tr-bar-drink">Mocktails</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="tr-bar-card h-100">
+        <img src="https://images.unsplash.com/photo-1574701148212-8518049c7b2c?w=600&q=80" class="tr-bar-img" alt="Puros">
+        <div class="tr-bar-body">
+          <div class="tr-bar-tag">Humidor Selecto</div>
+          <h3 class="tr-bar-title">Puros &amp; Habanos</h3>
+          <p class="tr-bar-desc">Colecci&oacute;n curada de los mejores puros cubanos, dominicanos y nicaragüenses. Disponibles en terraza.</p>
+          <div class="tr-bar-drinks">
+            <span class="tr-bar-drink">Cohiba</span>
+            <span class="tr-bar-drink">Montecristo</span>
+            <span class="tr-bar-drink">Romeo y Julieta</span>
+            <span class="tr-bar-drink">Davidoff</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENDA -->
+<section class="tr-section">
+  <div class="tr-section-title"><h2>Agenda Musical</h2><span>M&uacute;sica en Vivo</span></div>
+  <div class="tr-agenda">
+    <div class="tr-agenda-header"><h3>Programaci&oacute;n Semanal</h3><span>Desde las 21:00 hrs</span></div>
+    <div class="tr-agenda-day tr-agenda-day-closed">
+      <div class="tr-agenda-day-name">Lunes</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Descanso</p><p class="tr-agenda-detail">Sin música en vivo — ambiente tranquilo</p></div>
+      <div class="tr-agenda-time"><span class="tr-agenda-badge tr-badge-closed">Sin show</span></div>
+    </div>
+    <div class="tr-agenda-day tr-agenda-day-closed">
+      <div class="tr-agenda-day-name">Martes</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Descanso</p><p class="tr-agenda-detail">Sin música en vivo — ideal para reuniones privadas</p></div>
+      <div class="tr-agenda-time"><span class="tr-agenda-badge tr-badge-closed">Sin show</span></div>
+    </div>
+    <div class="tr-agenda-day">
+      <div class="tr-agenda-day-name">Mi&eacute;rcoles</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Blues &amp; Soul</p><p class="tr-agenda-detail">Noche de blues con artistas locales.</p></div>
+      <div class="tr-agenda-time">21:00 — 00:00<br><span class="tr-agenda-badge tr-badge-live">En Vivo</span></div>
+    </div>
+    <div class="tr-agenda-day">
+      <div class="tr-agenda-day-name">Jueves</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Noche de Jazz</p><p class="tr-agenda-detail">Cuarteto de jazz. Cl&aacute;sicos de Coltrane, Miles Davis y Jobim.</p></div>
+      <div class="tr-agenda-time">21:00 — 01:00<br><span class="tr-agenda-badge tr-badge-live">En Vivo</span></div>
+    </div>
+    <div class="tr-agenda-day">
+      <div class="tr-agenda-day-name">Viernes</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Tecno &amp; Electr&oacute;nica</p><p class="tr-agenda-detail">DJ residente con sets de techno elegante y deep house.</p></div>
+      <div class="tr-agenda-time">22:00 — 03:00<br><span class="tr-agenda-badge tr-badge-live">En Vivo</span></div>
+    </div>
+    <div class="tr-agenda-day">
+      <div class="tr-agenda-day-name">S&aacute;bado</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Pop &amp; Electr&oacute;nica</p><p class="tr-agenda-detail">DJ invitado con pop electr&oacute;nico e &eacute;xitos internacionales.</p></div>
+      <div class="tr-agenda-time">22:00 — 04:00<br><span class="tr-agenda-badge tr-badge-live">En Vivo</span></div>
+    </div>
+    <div class="tr-agenda-day tr-agenda-day-closed">
+      <div class="tr-agenda-day-name">Domingo</div><div class="tr-agenda-divider"></div>
+      <div class="tr-agenda-info"><p class="tr-agenda-genre">Jazz Brunch</p><p class="tr-agenda-detail">M&uacute;sica suave para el brunch dominical. Piano y voz.</p></div>
+      <div class="tr-agenda-time">12:00 — 17:00<br><span class="tr-agenda-badge tr-badge-live">Brunch</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="tr-cta">
+  <h2>&iquest;Listo para vivir la experiencia?</h2>
+  <p>Reserva tu mesa en la terraza o uno de nuestros salones privados.</p>
+  <div class="tr-cta-actions">
+    <a class="bc-btn-gold" href="{% url 'contact:contact' %}">Reservar Mesa</a>
+    <a class="bc-btn-outline" href="{% url 'catalog:product_list' %}">Ver Carta Completa</a>
+  </div>
+</div>
+
+{% endblock %}

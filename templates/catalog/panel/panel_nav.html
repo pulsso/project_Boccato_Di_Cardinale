@@ -1,0 +1,59 @@
+{% load static %}
+<style>
+  .pn-header { margin-bottom: 28px; padding-bottom: 18px; border-bottom: 1px solid rgba(212,175,55,0.12); }
+  .pn-header h1 { font-family: var(--bc-serif); font-size: 26px; font-weight: 400; color: var(--bc-cream); margin: 0 0 4px; }
+  .pn-header p { font-family: var(--bc-sans); font-size: 12px; color: var(--bc-muted); margin: 0; }
+  .pn-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 32px; }
+  .pn-nav-btn { border: 1px solid rgba(212,175,55,0.18); color: var(--bc-muted); font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 7px 16px; border-radius: 2px; text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .pn-nav-btn:hover, .pn-nav-btn.active { border-color: var(--bc-gold); color: var(--bc-gold); background: var(--bc-gold-glow); }
+  .pn-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 24px; margin-bottom: 24px; }
+  .pn-section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,175,55,0.1); }
+  .pn-section-title h2 { font-family: var(--bc-serif); font-size: 20px; font-weight: 400; color: var(--bc-cream); margin: 0; }
+  .pn-btn-gold { background: var(--bc-gold); color: var(--bc-bg); font-family: var(--bc-sans); font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; padding: 9px 22px; border: none; border-radius: 2px; text-decoration: none; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .pn-btn-gold:hover { background: var(--bc-gold-dim); color: var(--bc-bg); }
+  .pn-btn-outline { border: 1px solid rgba(212,175,55,0.3); color: var(--bc-gold); font-family: var(--bc-sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 8px 20px; border-radius: 2px; text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .pn-btn-outline:hover { background: var(--bc-gold-glow); border-color: var(--bc-gold); color: var(--bc-gold); }
+  .pn-btn-danger { border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; background: transparent; cursor: pointer; }
+  .pn-btn-danger:hover { background: rgba(239,68,68,0.1); color: #fca5a5; }
+  .pn-table { width: 100%; border-collapse: collapse; }
+  .pn-table th { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(212,175,55,0.1); white-space: nowrap; }
+  .pn-table td { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); padding: 12px 14px; border-bottom: 1px solid rgba(212,175,55,0.06); vertical-align: middle; }
+  .pn-table tr:hover td { background: rgba(212,175,55,0.02); }
+  .pn-table tr:last-child td { border-bottom: none; }
+  .pn-badge { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--bc-sans); padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
+  .pn-badge-green  { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.25);  color: #86efac; }
+  .pn-badge-red    { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+  .pn-badge-gold   { background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25); color: var(--bc-gold); }
+  .pn-badge-blue   { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; }
+  .pn-badge-purple { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #d8b4fe; }
+  .pn-status-pending    { background: rgba(234,179,8,0.1);  border: 1px solid rgba(234,179,8,0.25);  color: #fde047; }
+  .pn-status-processing { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; }
+  .pn-status-delivered  { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.25);  color: #86efac; }
+  .pn-status-cancelled  { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+  .pn-status-shipped    { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #d8b4fe; }
+  .pn-form-group { margin-bottom: 18px; }
+  .pn-form-group label { display: block; font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); margin-bottom: 7px; }
+  .pn-form-group input, .pn-form-group select, .pn-form-group textarea { width: 100%; background: var(--bc-surface2); border: 1px solid rgba(212,175,55,0.2); color: var(--bc-cream); border-radius: 2px; padding: 10px 14px; font-family: var(--bc-sans); font-size: 13px; transition: border-color 0.2s; }
+  .pn-form-group input:focus, .pn-form-group select:focus, .pn-form-group textarea:focus { outline: none; border-color: var(--bc-gold); box-shadow: 0 0 0 3px var(--bc-gold-glow); }
+  .pn-img-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 2px; border: 1px solid rgba(212,175,55,0.15); }
+  .pn-img-placeholder { width: 48px; height: 48px; background: var(--bc-surface2); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 18px; opacity: 0.4; }
+  .pn-empty { text-align: center; padding: 48px 24px; }
+  .pn-empty p { font-family: var(--bc-serif); font-style: italic; font-size: 16px; color: var(--bc-muted); margin: 12px 0 0; }
+</style>
+
+<div class="pn-header">
+  <h1>{% block panel_title %}Panel Admin{% endblock %}</h1>
+  <p>Boccato di Cardinale &middot; {{ request.user.username }}</p>
+</div>
+
+<div class="pn-nav">
+  <a href="{% url 'catalog:panel_dashboard' %}" class="pn-nav-btn {% block nav_dashboard %}{% endblock %}"><i class="bi bi-grid"></i> Dashboard</a>
+  <a href="{% url 'catalog:panel_productos' %}" class="pn-nav-btn {% block nav_productos %}{% endblock %}"><i class="bi bi-box-seam"></i> Productos</a>
+  <a href="{% url 'catalog:panel_categorias' %}" class="pn-nav-btn {% block nav_categorias %}{% endblock %}"><i class="bi bi-tags"></i> Categorías</a>
+  <a href="{% url 'catalog:panel_ofertas' %}" class="pn-nav-btn {% block nav_ofertas %}{% endblock %}"><i class="bi bi-percent"></i> Ofertas</a>
+  <a href="{% url 'catalog:panel_campanas' %}" class="pn-nav-btn {% block nav_campanas %}{% endblock %}"><i class="bi bi-megaphone"></i> Campañas</a>
+  <a href="{% url 'catalog:panel_ordenes' %}" class="pn-nav-btn {% block nav_ordenes %}{% endblock %}"><i class="bi bi-bag-check"></i> Órdenes</a>
+  <a href="{% url 'catalog:panel_galeria' %}" class="pn-nav-btn {% block nav_galeria %}{% endblock %}"><i class="bi bi-images"></i> Galería</a>
+  <a href="{% url 'catalog:panel_historial' %}" class="pn-nav-btn {% block nav_historial %}{% endblock %}"><i class="bi bi-clock-history"></i> Historial</a>
+  <a href="{% url 'catalog:panel_reportes' %}" class="pn-nav-btn {% block nav_reportes %}{% endblock %}"><i class="bi bi-bar-chart"></i> Reportes</a>
+</div>

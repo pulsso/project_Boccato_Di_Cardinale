@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ofertas · Panel Boccato{% endblock %}
+{% block content %}
+{% include "catalog/panel/panel_nav.html" %}
+
+<div class="pn-card">
+  <div class="pn-section-title">
+    <h2>Ofertas &amp; Descuentos</h2>
+    <a href="{% url 'catalog:panel_oferta_crear' %}" class="pn-btn-gold">
+      <i class="bi bi-plus-lg"></i> Nueva Oferta
+    </a>
+  </div>
+
+  <table class="pn-table">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Descuento</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Estado</th>
+        <th>Creada por</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for oferta in ofertas %}
+      <tr>
+        <td>{{ oferta.producto.name }}</td>
+        <td style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:16px;">
+          {{ oferta.descuento_porcentaje }}%
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ oferta.fecha_inicio|date:"d/m/Y" }}
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ oferta.fecha_fin|date:"d/m/Y" }}
+        </td>
+        <td>
+          {% if oferta.activa and oferta.fecha_fin >= hoy %}
+            <span class="pn-badge pn-badge-green">Activa</span>
+          {% elif oferta.fecha_fin < hoy %}
+            <span class="pn-badge pn-badge-red">Vencida</span>
+          {% else %}
+            <span class="pn-badge pn-badge-red">Inactiva</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--bc-muted);font-size:12px;">
+          {{ oferta.creada_por.username|default:"—" }}
+        </td>
+        <td>
+          <form method="post"
+                action="{% url 'catalog:panel_oferta_eliminar' oferta.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="pn-btn-danger"
+                    style="padding:5px 12px;font-size:10px;"
+                    onclick="return confirm('¿Eliminar esta oferta?')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">
+          <div class="pn-empty">
+            <div style="font-size:2rem;color:var(--bc-gold);opacity:0.3;">%</div>
+            <p>Sin ofertas creadas.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

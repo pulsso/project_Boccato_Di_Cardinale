@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Cobrar Mesa {{ comanda.mesa.numero }} &middot; Caja{% endblock %}
+
+{% block content %}
+<style>
+  .pago-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .pago-layout { grid-template-columns: 1fr; } }
+  .pago-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.15); border-radius: 4px; padding: 24px; }
+  .pago-mesa-title { font-family: var(--bc-serif); font-size: 26px; font-weight: 400; color: var(--bc-cream); margin: 0 0 4px; }
+  .pago-mesa-meta { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-muted); margin-bottom: 20px; }
+  .pago-items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .pago-items-table th { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(212,175,55,0.1); }
+  .pago-items-table td { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); padding: 10px 12px; border-bottom: 1px solid rgba(212,175,55,0.06); }
+  .pago-items-table tr:last-child td { border-bottom: none; }
+  .pago-total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-top: 1px solid rgba(212,175,55,0.15); }
+  .pago-total-label { font-family: var(--bc-sans); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--bc-muted); }
+  .pago-total-valor { font-family: var(--bc-serif); font-size: 28px; font-weight: 400; color: var(--bc-gold); }
+  .metodo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .metodo-btn { background: var(--bc-surface2); border: 2px solid rgba(212,175,55,0.15); border-radius: 4px; padding: 16px 12px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .metodo-btn:hover { border-color: rgba(212,175,55,0.4); }
+  .metodo-btn.selected { border-color: var(--bc-gold); background: var(--bc-gold-glow); }
+  .metodo-btn input[type="radio"] { display: none; }
+  .metodo-icon { font-size: 24px; margin-bottom: 6px; }
+  .metodo-label { font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--bc-cream); }
+  .pago-form-group { margin-bottom: 16px; }
+  .pago-form-group label { display: block; font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); margin-bottom: 7px; }
+  .pago-form-group input, .pago-form-group textarea { width: 100%; background: var(--bc-surface2); border: 1px solid rgba(212,175,55,0.2); color: var(--bc-cream); border-radius: 2px; padding: 10px 14px; font-family: var(--bc-sans); font-size: 14px; transition: border-color 0.2s; }
+  .pago-form-group input:focus { outline: none; border-color: var(--bc-gold); }
+  .pago-total-con-propina { background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2); border-radius: 3px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .pago-total-con-propina span:first-child { font-family: var(--bc-sans); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--bc-muted); }
+  .pago-total-con-propina span:last-child { font-family: var(--bc-serif); font-size: 22px; font-weight: 600; color: var(--bc-gold); }
+  .extra-fields { display: none; }
+  .extra-fields.show { display: block; }
+  .transferencia-warning { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25); border-radius: 3px; padding: 12px 16px; margin-bottom: 14px; }
+  .transferencia-warning p { font-family: var(--bc-sans); font-size: 12px; color: #fde047; margin: 0; }
+</style>
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+  <h1 style="font-family:var(--bc-serif);font-size:22px;font-weight:400;color:var(--bc-cream);margin:0;">
+    Cobrar Comanda #{{ comanda.id }}
+  </h1>
+  <a href="{% url 'caja:dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;">← Volver a Caja</a>
+</div>
+
+<div class="pago-layout">
+
+  <div class="pago-card">
+    <div class="pago-mesa-title">Mesa {{ comanda.mesa.numero }}</div>
+    <div class="pago-mesa-meta">
+      Garz&oacute;n: {{ comanda.garzon.get_full_name|default:comanda.garzon.username }} &middot;
+      {{ comanda.num_comensales }} comensal{{ comanda.num_comensales|pluralize:"es" }} &middot;
+      {{ comanda.creada_at|date:"H:i" }} hrs
+    </div>
+    <table class="pago-items-table">
+      <thead>
+        <tr><th>Item</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr>
+      </thead>
+      <tbody>
+        {% for item in comanda.items.all %}
+        <tr>
+          <td>
+            {{ item.nombre_item }}
+            {% if item.notas %}<br><span style="font-size:11px;color:var(--bc-muted);font-style:italic;">{{ item.notas }}</span>{% endif %}
+          </td>
+          <td style="color:var(--bc-muted);">{{ item.cantidad }}</td>
+          <td style="color:var(--bc-muted);">${{ item.precio_unitario|floatformat:0 }}</td>
+          <td style="color:var(--bc-gold);font-family:var(--bc-serif);">${{ item.subtotal|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="pago-total-row">
+      <span class="pago-total-label">Total Comanda</span>
+      <span class="pago-total-valor">${{ total|floatformat:0 }}</span>
+    </div>
+  </div>
+
+  <div class="pago-card">
+    <h2 style="font-family:var(--bc-serif);font-size:18px;font-weight:400;color:var(--bc-cream);margin:0 0 20px;">Método de Pago</h2>
+    <form method="post" id="pago-form">
+      {% csrf_token %}
+      <div class="metodo-grid">
+        <label class="metodo-btn" onclick="selectMetodo(this, 'efectivo')">
+          <input type="radio" name="metodo" value="efectivo">
+          <div class="metodo-icon">💵</div>
+          <div class="metodo-label">Efectivo</div>
+        </label>
+        <label class="metodo-btn" onclick="selectMetodo(this, 'tarjeta_credito')">
+          <input type="radio" name="metodo" value="tarjeta_credito">
+          <div class="metodo-icon">💳</div>
+          <div class="metodo-label">Tarjeta Crédito</div>
+        </label>
+        <label class="metodo-btn" onclick="selectMetodo(this, 'tarjeta_debito')">
+          <input type="radio" name="metodo" value="tarjeta_debito">
+          <div class="metodo-icon">🏧</div>
+          <div class="metodo-label">Tarjeta Débito</div>
+        </label>
+        <label class="metodo-btn" onclick="selectMetodo(this, 'transferencia')">
+          <input type="radio" name="metodo" value="transferencia">
+          <div class="metodo-icon">🏦</div>
+          <div class="metodo-label">Transferencia</div>
+        </label>
+      </div>
+
+      <div class="extra-fields" id="campos-tarjeta">
+        <div class="pago-form-group">
+          <label>Últimos 4 dígitos</label>
+          <input type="text" name="ultimos_4" maxlength="4" placeholder="1234" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="extra-fields" id="campos-transferencia">
+        <div class="transferencia-warning">
+          <p><i class="bi bi-exclamation-triangle me-2"></i>Las transferencias requieren autorización del Tesorero.</p>
+        </div>
+        <div class="pago-form-group">
+          <label>N° de operación / Referencia</label>
+          <input type="text" name="referencia" placeholder="Número de transferencia">
+        </div>
+      </div>
+
+      <div class="pago-form-group">
+        <label>Propina ($) — Opcional</label>
+        <input type="number" name="propina" value="0" min="0" id="propina-input"
+               oninput="actualizarTotal()" inputmode="numeric">
+      </div>
+
+      <div class="pago-total-con-propina">
+        <span>Total a cobrar</span>
+        <span id="total-display">${{ total|floatformat:0 }}</span>
+      </div>
+
+      <div class="pago-form-group">
+        <label>Notas (opcional)</label>
+        <textarea name="notas" rows="2" placeholder="Observaciones..."></textarea>
+      </div>
+
+      <button type="submit" id="btn-submit" disabled
+              style="width:100%;background:var(--bc-gold);color:var(--bc-bg);font-family:var(--bc-sans);font-size:12px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:14px;border:none;border-radius:2px;cursor:pointer;transition:background 0.2s;opacity:0.5;">
+        <i class="bi bi-check-circle me-2"></i>Registrar Pago
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+const totalBase = {{ total }};
+function selectMetodo(btn, metodo) {
+  document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  btn.querySelector('input[type="radio"]').checked = true;
+  document.getElementById('campos-tarjeta').classList.remove('show');
+  document.getElementById('campos-transferencia').classList.remove('show');
+  if (metodo === 'tarjeta_credito' || metodo === 'tarjeta_debito') {
+    document.getElementById('campos-tarjeta').classList.add('show');
+  } else if (metodo === 'transferencia') {
+    document.getElementById('campos-transferencia').classList.add('show');
+  }
+  const btn_submit = document.getElementById('btn-submit');
+  btn_submit.disabled = false;
+  btn_submit.style.opacity = '1';
+}
+function actualizarTotal() {
+  const propina = parseFloat(document.getElementById('propina-input').value) || 0;
+  const total = totalBase + propina;
+  document.getElementById('total-display').textContent = '$' + total.toLocaleString('es-CL');
+}
+</script>
+{% endblock %}

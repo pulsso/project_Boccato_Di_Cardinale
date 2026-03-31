@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Tesorero &middot; Boccato di Cardinale{% endblock %}
+
+{% block content %}
+<style>
+  .ts-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(212,175,55,0.12); flex-wrap: wrap; gap: 12px; }
+  .ts-header h1 { font-family: var(--bc-serif); font-size: 24px; font-weight: 400; color: var(--bc-cream); margin: 0; }
+  .ts-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .ts-stat { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 18px 20px; }
+  .ts-stat-label { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-muted); margin-bottom: 6px; }
+  .ts-stat-num { font-family: var(--bc-serif); font-size: 26px; font-weight: 400; color: var(--bc-gold); }
+  .ts-stat-alert .ts-stat-num { color: #fde047; }
+  .ts-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 22px; margin-bottom: 20px; }
+  .ts-card-title { font-family: var(--bc-serif); font-size: 18px; font-weight: 400; color: var(--bc-cream); margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(212,175,55,0.1); display: flex; align-items: center; justify-content: space-between; }
+  .ts-pendiente-card { background: var(--bc-surface2); border: 1px solid rgba(234,179,8,0.2); border-radius: 4px; padding: 18px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .ts-pendiente-info h3 { font-family: var(--bc-sans); font-size: 14px; color: var(--bc-cream); margin: 0 0 4px; }
+  .ts-pendiente-info p { font-family: var(--bc-sans); font-size: 12px; color: var(--bc-muted); margin: 0; }
+  .ts-pendiente-monto { font-family: var(--bc-serif); font-size: 20px; font-weight: 600; color: var(--bc-gold); }
+  .ts-btn-revisar { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color: #86efac; font-family: var(--bc-sans); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 16px; border-radius: 2px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .ts-table { width: 100%; border-collapse: collapse; }
+  .ts-table th { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(212,175,55,0.1); }
+  .ts-table td { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); padding: 11px 12px; border-bottom: 1px solid rgba(212,175,55,0.06); vertical-align: middle; }
+  .ts-table tr:last-child td { border-bottom: none; }
+</style>
+
+<div class="ts-header">
+  <h1>Panel Tesorero</h1>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="{% url 'caja:dashboard' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">
+      <i class="bi bi-cash-register me-1"></i> Ir a Caja
+    </a>
+    <a href="{% url 'caja:historial_pagos' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">
+      <i class="bi bi-clock-history me-1"></i> Historial
+    </a>
+    <a href="{% url 'payments:treasury_security' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">
+      <i class="bi bi-shield-lock me-1"></i> Clave Tesoreria
+    </a>
+    <a href="{% url 'orders:dispatch_dashboard' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">
+      <i class="bi bi-truck me-1"></i> Despacho
+    </a>
+  </div>
+</div>
+
+<div class="ts-stats">
+  <div class="ts-stat {% if aperturas_pendientes.count > 0 %}ts-stat-alert{% endif %}">
+    <div class="ts-stat-label">Aperturas pendientes</div>
+    <div class="ts-stat-num">{{ aperturas_pendientes.count }}</div>
+  </div>
+  <div class="ts-stat {% if cierres_pendientes.count > 0 %}ts-stat-alert{% endif %}">
+    <div class="ts-stat-label">Cierres pendientes</div>
+    <div class="ts-stat-num">{{ cierres_pendientes.count }}</div>
+  </div>
+  <div class="ts-stat {% if transferencias_pendientes.count > 0 %}ts-stat-alert{% endif %}">
+    <div class="ts-stat-label">Transferencias pendientes</div>
+    <div class="ts-stat-num">{{ transferencias_pendientes.count }}</div>
+  </div>
+  <div class="ts-stat {% if ecommerce_transferencias_pendientes.count > 0 %}ts-stat-alert{% endif %}">
+    <div class="ts-stat-label">Tienda pendiente</div>
+    <div class="ts-stat-num">{{ ecommerce_transferencias_pendientes.count }}</div>
+  </div>
+  <div class="ts-stat">
+    <div class="ts-stat-label">Total del día</div>
+    <div class="ts-stat-num">${{ total_hoy|floatformat:0 }}</div>
+  </div>
+  <div class="ts-stat">
+    <div class="ts-stat-label">Propinas</div>
+    <div class="ts-stat-num">${{ propinas_hoy|floatformat:0 }}</div>
+  </div>
+</div>
+
+{% if aperturas_pendientes %}
+<div class="ts-card">
+  <div class="ts-card-title">Solicitudes de Apertura <span style="font-family:var(--bc-sans);font-size:11px;color:#fde047;">{{ aperturas_pendientes.count }} pendiente{{ aperturas_pendientes.count|pluralize:"s" }}</span></div>
+  {% for apertura in aperturas_pendientes %}
+  <div class="ts-pendiente-card">
+    <div class="ts-pendiente-info">
+      <h3>{{ apertura.cajero.get_full_name|default:apertura.cajero.username }}</h3>
+      <p>{{ apertura.solicitada_at|date:"d/m/Y H:i" }} &middot; Fondo: ${{ apertura.monto_inicial|floatformat:0 }}</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="ts-pendiente-monto">${{ apertura.monto_inicial|floatformat:0 }}</span>
+      <a href="{% url 'caja:autorizar_apertura' apertura.pk %}" class="ts-btn-revisar"><i class="bi bi-check-lg"></i> Revisar</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if transferencias_pendientes %}
+<div class="ts-card">
+  <div class="ts-card-title">Transferencias por Autorizar <span style="font-family:var(--bc-sans);font-size:11px;color:#fde047;">{{ transferencias_pendientes.count }} pendiente{{ transferencias_pendientes.count|pluralize:"s" }}</span></div>
+  {% for pago in transferencias_pendientes %}
+  <div class="ts-pendiente-card">
+    <div class="ts-pendiente-info">
+      <h3>Mesa {{ pago.comanda.mesa.numero }} — Comanda #{{ pago.comanda.id }}</h3>
+      <p>{{ pago.cajero.get_full_name|default:pago.cajero.username }} &middot; {{ pago.creado_at|date:"H:i" }}{% if pago.referencia %} &middot; Ref: {{ pago.referencia }}{% endif %}</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="ts-pendiente-monto">${{ pago.monto_total|floatformat:0 }}</span>
+      <a href="{% url 'caja:autorizar_transferencia' pago.pk %}" class="ts-btn-revisar"><i class="bi bi-check-lg"></i> Revisar</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if ecommerce_transferencias_pendientes %}
+<div class="ts-card">
+  <div class="ts-card-title">Transferencias Tienda por Autorizar <span style="font-family:var(--bc-sans);font-size:11px;color:#fde047;">{{ ecommerce_transferencias_pendientes.count }} pendiente{{ ecommerce_transferencias_pendientes.count|pluralize:"s" }}</span></div>
+  {% for payment in ecommerce_transferencias_pendientes %}
+  <div class="ts-pendiente-card">
+    <div class="ts-pendiente-info">
+      <h3>Orden #{{ payment.order.id }} - {{ payment.user.get_full_name|default:payment.user.username }}</h3>
+      <p>{{ payment.order.created_at|date:"d/m/Y H:i" }} · Folio {{ payment.order.folio }}{% if payment.reference %} · Ref: {{ payment.reference }}{% endif %}</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="ts-pendiente-monto">${{ payment.order.get_net_total|floatformat:0 }}</span>
+      <a href="{% url 'payments:payment_authorize' payment.pk %}" class="ts-btn-revisar"><i class="bi bi-check-lg"></i> Revisar</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if ecommerce_validaciones_recientes %}
+<div class="ts-card">
+  <div class="ts-card-title">Historial Validaciones Tienda</div>
+  <table class="ts-table">
+    <thead>
+      <tr>
+        <th>Fecha y hora</th>
+        <th>Orden</th>
+        <th>Folio</th>
+        <th>Cliente</th>
+        <th>Estado</th>
+        <th>Boleta / rechazo</th>
+        <th>Detalle operacion</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for payment in ecommerce_validaciones_recientes %}
+      <tr>
+        <td>{{ payment.confirmed_at|default:payment.created_at|date:"d/m/Y H:i" }}</td>
+        <td>#{{ payment.order.id }}</td>
+        <td>{{ payment.order.folio }}</td>
+        <td>{{ payment.user.get_full_name|default:payment.user.username }}</td>
+        <td>
+          {% if payment.status == 'completed' %}
+          <span style="color:#86efac;">Aprobada</span>
+          {% else %}
+          <span style="color:#fca5a5;">Rechazada</span>
+          {% endif %}
+        </td>
+        <td>{{ payment.validation_reference_display|default:"Sin codigo" }}</td>
+        <td>
+          Ref: {{ payment.reference|default:"Sin referencia" }}
+          {% if payment.review_notes %}<br>{{ payment.review_notes }}{% endif %}
+          {% if payment.approved_by %}<br>Por: {{ payment.approved_by.get_full_name|default:payment.approved_by.username }}{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if cierres_pendientes %}
+<div class="ts-card">
+  <div class="ts-card-title">Solicitudes de Cierre <span style="font-family:var(--bc-sans);font-size:11px;color:#fde047;">{{ cierres_pendientes.count }} pendiente{{ cierres_pendientes.count|pluralize:"s" }}</span></div>
+  {% for cierre in cierres_pendientes %}
+  <div class="ts-pendiente-card">
+    <div class="ts-pendiente-info">
+      <h3>{{ cierre.cajero.get_full_name|default:cierre.cajero.username }}</h3>
+      <p>{{ cierre.solicitado_at|date:"d/m/Y H:i" }}</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="ts-pendiente-monto">${{ cierre.get_total|floatformat:0 }}</span>
+      <a href="{% url 'caja:autorizar_cierre' cierre.pk %}" class="ts-btn-revisar"><i class="bi bi-check-lg"></i> Revisar</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="ts-card">
+      <div class="ts-card-title">Ventas del Día por Método</div>
+      <table class="ts-table">
+        <thead><tr><th>Método</th><th>Cant.</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for metodo, data in resumen.items %}
+          <tr>
+            <td>{{ data.label }}</td>
+            <td style="color:var(--bc-muted);">{{ data.cantidad }}</td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);">${{ data.total|floatformat:0 }}</td>
+          </tr>
+          {% endfor %}
+          <tr style="border-top:1px solid rgba(212,175,55,0.15);">
+            <td><strong>TOTAL</strong></td><td></td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:17px;"><strong>${{ total_hoy|floatformat:0 }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="ts-card">
+      <div class="ts-card-title">Historial de Cierres</div>
+      <table class="ts-table">
+        <thead><tr><th>Fecha</th><th>Cajero</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for cierre in historial_cierres %}
+          <tr>
+            <td style="color:var(--bc-muted);font-size:12px;">{{ cierre.autorizado_at|date:"d/m/Y" }}</td>
+            <td>{{ cierre.cajero.get_full_name|default:cierre.cajero.username|default:"—" }}</td>
+            <td style="color:var(--bc-gold);font-family:var(--bc-serif);">${{ cierre.get_total|floatformat:0 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--bc-muted);padding:20px;">Sin cierres aún</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

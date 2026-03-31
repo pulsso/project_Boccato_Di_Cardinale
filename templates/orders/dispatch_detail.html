@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Despacho Orden #{{ order.id }} | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .dispatch-map-panel {
+    border: 1px solid rgba(37,99,235,0.35);
+    border-radius: 8px;
+    background: rgba(37,99,235,0.08);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.12) inset;
+  }
+  .dispatch-summary {
+    min-height: 340px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.96));
+    padding: 24px;
+    color: #dbeafe;
+    border: 1px solid rgba(147,197,253,0.16);
+  }
+</style>
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+        <div>
+          <h2 class="fw-bold mb-2">Despacho orden #{{ order.id }}</h2>
+          <p class="mb-1"><strong>Cliente:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+          <p class="mb-1"><strong>Direccion:</strong> {{ order.shipping_address }}</p>
+          <p class="mb-1"><strong>Zona / sector:</strong> {{ order.get_zone_display }} / {{ order.get_sector_display }}</p>
+          <p class="mb-1"><strong>Distancia aproximada:</strong> {{ order.delivery_distance_km|default:"0" }} km</p>
+          <p class="mb-1"><strong>Folio:</strong> {{ order.folio }}</p>
+          {% if payment %}<p class="mb-0"><strong>Boleta:</strong> {{ payment.treasury_number_display }}</p>{% endif %}
+        </div>
+        <div class="text-end">
+          <span class="badge bg-dark">{{ dispatch_task.get_status_display }}</span>
+        </div>
+      </div>
+
+      <div class="table-responsive mb-4">
+        <table class="table">
+          <thead class="table-dark">
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items.all %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td>{{ item.quantity }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="delivery_method">Tipo de entrega</label>
+            <select class="form-select" id="delivery_method" name="delivery_method" required>
+              <option value="internal" {% if order.delivery_method == 'internal' or dispatch_task.delivery_method == 'internal' %}selected{% endif %}>Sistema propio</option>
+              <option value="external" {% if order.delivery_method == 'external' or dispatch_task.delivery_method == 'external' %}selected{% endif %}>Delivery externo</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="estimated_delivery_minutes">Tiempo estimado</label>
+            <select class="form-select" id="estimated_delivery_minutes" name="estimated_delivery_minutes">
+              <option value="15" {% if order.estimated_delivery_minutes == 15 %}selected{% endif %}>15 minutos</option>
+              <option value="20" {% if order.estimated_delivery_minutes == 20 %}selected{% endif %}>20 minutos</option>
+              <option value="25" {% if order.estimated_delivery_minutes == 25 %}selected{% endif %}>25 minutos</option>
+              <option value="30" {% if not order.estimated_delivery_minutes or order.estimated_delivery_minutes == 30 %}selected{% endif %}>30 minutos</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="dispatch_notes">Detalle para despacho</label>
+            <textarea class="form-control" id="dispatch_notes" name="dispatch_notes" rows="3" placeholder="Ejemplo: llamar al llegar, entregar en conserjeria, rider externo confirmado">{{ order.dispatch_notes|default:dispatch_task.notes }}</textarea>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+          <button class="btn btn-dark" type="submit">Enviar a entrega</button>
+          <a class="btn btn-outline-secondary" href="{% url 'orders:dispatch_dashboard' %}">Volver</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="dispatch-map-panel p-3 mt-4">
+      <div style="color:#93c5fd;font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">
+        Referencia de despacho
+      </div>
+      <div class="dispatch-summary">
+        <p class="mb-2"><strong>Sucursal:</strong> {{ store_origin_address }}</p>
+        <p class="mb-2"><strong>Destino:</strong> {{ order.shipping_address }}</p>
+        <p class="mb-2"><strong>Zona / sector:</strong> {{ order.get_zone_display }} / {{ order.get_sector_display }}</p>
+        <p class="mb-2"><strong>Distancia aproximada:</strong> {{ order.delivery_distance_km|default:"0" }} km</p>
+        <p class="mb-0"><strong>ETA objetivo:</strong> {{ order.estimated_delivery_minutes|default:dispatch_task.estimated_delivery_minutes }} minutos</p>
+      </div>
+      <div class="small mt-2" style="color:#bfdbfe;" id="dispatch-map-status">
+        Referencia visual para el repartidor sin depender de Google Maps. La ruta final se confirma con la direccion del cliente.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
