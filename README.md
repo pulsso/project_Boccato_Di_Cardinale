@@ -1,6 +1,6 @@
-# Grupo Boccato
+# Boccato Di Cardinale 2.0
 
-Sistema web gastronomico construido con Django para catalogo, carrito, pedidos, pagos por transferencia, caja y seguimiento de despacho.
+Sistema web gastronomico construido con Django para catalogo, carrito, pedidos, pagos por transferencia, caja, comandas y seguimiento operativo del local.
 
 ## Autor y derechos
 
@@ -39,7 +39,7 @@ python -m pip
 
 ### 2. Entorno virtual limpio
 
-Ejecuta dentro de `C:\Users\NBK-MGONZALEZ\OneDrive\Escritorio\Grupo_Boccato`:
+Ejecuta dentro de la raiz del proyecto:
 
 ```powershell
 Remove-Item -Recurse -Force .\venv
@@ -121,3 +121,18 @@ Antes de hacer push:
 - Verifica que `.env` no aparezca en `git status`
 - Revisa que `README.md` represente el backend real del sistema
 - No subas respaldos, certificados, llaves ni bases locales
+
+## Nombre del repositorio
+
+Puedes renombrar el repositorio en GitHub a `Boccato_Di_Cardinale` sin danar el proyecto.
+GitHub mantiene redireccion del nombre anterior, pero despues conviene actualizar el remoto local con:
+
+```powershell
+git remote set-url origin https://github.com/pulsso/Boccato_Di_Cardinale.git
+```
+
+## Version actual
+
+- Nombre comercial: `Boccato Di Cardinale 2.0`
+- Autor: `AS_Royal`
+- Base de datos principal: `PostgreSQL`
