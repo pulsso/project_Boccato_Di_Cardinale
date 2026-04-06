@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Mesas y Zonas | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .pm-wrap { display:grid; gap:24px; }
+  .pm-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .pm-head h1 { margin:0; font-family:var(--bc-serif); font-size:30px; color:var(--bc-cream); }
+  .pm-head p { margin:8px 0 0; color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; }
+  .pm-btn { display:inline-flex; align-items:center; justify-content:center; padding:9px 16px; border-radius:4px; text-decoration:none; border:1px solid rgba(212,175,55,0.28); color:var(--bc-gold); font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; background:transparent; }
+  .pm-btn:hover { background:var(--bc-gold-glow); color:var(--bc-gold); }
+  .pm-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:20px; }
+  .pm-zone-title { margin:0 0 14px; font-family:var(--bc-serif); color:var(--bc-cream); font-size:24px; }
+  .pm-table { width:100%; border-collapse:collapse; }
+  .pm-table th, .pm-table td { padding:12px 10px; border-bottom:1px solid rgba(212,175,55,0.08); text-align:left; }
+  .pm-table th { color:var(--bc-muted); font-family:var(--bc-sans); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
+  .pm-table td { color:var(--bc-cream); font-family:var(--bc-sans); font-size:13px; }
+</style>
+
+<div class="pm-wrap">
+  <div class="pm-head">
+    <div>
+      <h1>Mesas, puestos y zonas</h1>
+      <p>Configuracion operativa para salon, barra y terraza.</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{% url 'comandas:panel_comandas' %}" class="pm-btn">Volver al panel</a>
+      {% if can_manage_layout %}
+      <a href="{% url 'comandas:panel_mesa_crear' %}" class="pm-btn">Nueva mesa</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% for zona_nombre, mesas_zona in zonas.items %}
+  <section class="pm-card">
+    <h2 class="pm-zone-title">{{ zona_nombre }}</h2>
+    <table class="pm-table">
+      <thead>
+        <tr>
+          <th>Numero</th>
+          <th>Capacidad</th>
+          <th>Responsable</th>
+          <th>Posicion</th>
+          <th>Estado</th>
+          {% if can_manage_layout %}<th>Acciones</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for mesa in mesas_zona %}
+        <tr>
+          <td>{% if mesa.zona == 'barra' %}B{{ mesa.numero }}{% else %}{{ mesa.numero }}{% endif %}</td>
+          <td>{{ mesa.capacidad }}</td>
+          <td>{{ mesa.responsable_label }}</td>
+          <td>{{ mesa.pos_x }}, {{ mesa.pos_y }}</td>
+          <td>{% if mesa.activa %}Activa{% else %}Inactiva{% endif %}</td>
+          {% if can_manage_layout %}
+          <td>
+            <a href="{% url 'comandas:panel_mesa_editar' mesa.id %}" class="pm-btn" style="padding:7px 12px;">Editar</a>
+            <a href="{% url 'comandas:panel_mesa_eliminar' mesa.id %}" class="pm-btn" style="padding:7px 12px;">Eliminar</a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

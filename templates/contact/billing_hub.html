@@ -1,0 +1,108 @@
+﻿{% extends "base.html" %}
+{% block title %}Documentos tributarios | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .billing-card {
+    background: linear-gradient(180deg, rgba(17, 14, 10, 0.96), rgba(26, 21, 16, 0.98));
+    border: 1px solid rgba(212, 175, 55, 0.16);
+    border-radius: 10px;
+    height: 100%;
+  }
+  .billing-kicker {
+    color: var(--bc-gold);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: var(--bc-sans);
+  }
+  .billing-link {
+    text-decoration: none;
+  }
+</style>
+
+<div class="row g-4 align-items-stretch">
+  <div class="col-lg-7">
+    <div class="billing-card p-4 p-lg-5">
+      <div class="billing-kicker mb-3">Mesa tributaria</div>
+      <h1 class="mb-3" style="font-family:var(--bc-serif);">Solicitud de boletas, facturas y honorarios</h1>
+      <p class="mb-4" style="color:var(--bc-muted);max-width:56ch;">
+        Centraliza la solicitud de documentos tributarios del proyecto con una salida profesional para clientes y una referencia operativa basada en servicios oficiales del SII.
+      </p>
+
+      {% if billing_order %}
+      <div class="card mb-4" style="background:rgba(212,175,55,0.05);border-color:rgba(212,175,55,0.14);">
+        <div class="card-body">
+          <div class="billing-kicker mb-2">Solicitud prellenada</div>
+          <div><strong>Orden:</strong> #{{ billing_order.id }}</div>
+          <div><strong>Folio:</strong> {{ billing_order.folio }}</div>
+          <div><strong>Cliente:</strong> {{ billing_order.customer_full_name }}</div>
+          <div><strong>Total estimado:</strong> ${{ billing_order.get_grand_total|floatformat:0 }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn btn-primary" href="{{ billing_mailto_url }}">
+          <i class="bi bi-envelope-paper"></i> Solicitar por email
+        </a>
+        {% if invoicing_contact_whatsapp %}
+        <a class="btn btn-outline-light" href="https://wa.me/{{ invoicing_contact_whatsapp|cut:'+'|cut:' ' }}" target="_blank" rel="noopener noreferrer">
+          <i class="bi bi-whatsapp"></i> Contacto por WhatsApp
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="small" style="color:var(--bc-muted);line-height:1.8;">
+        <div><strong>Razón social:</strong> {{ business_legal_name }}</div>
+        <div><strong>RUT:</strong> {{ business_rut }}</div>
+        <div><strong>Canal de facturación:</strong> {{ invoicing_contact_email }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="billing-card p-4 h-100">
+      <div class="billing-kicker mb-3">Accesos oficiales</div>
+      <div class="d-grid gap-3">
+        <a class="billing-link" href="{{ sii_electronic_invoice_url }}" target="_blank" rel="noopener noreferrer">
+          <div class="card" style="background:rgba(255,255,255,0.03);border-color:rgba(212,175,55,0.14);">
+            <div class="card-body">
+              <div class="fw-semibold text-light">Factura electrónica</div>
+              <div class="small" style="color:var(--bc-muted);">Portal informativo del SII para emisión y selección de sistema de facturación.</div>
+            </div>
+          </div>
+        </a>
+        <a class="billing-link" href="{{ sii_electronic_receipt_url }}" target="_blank" rel="noopener noreferrer">
+          <div class="card" style="background:rgba(255,255,255,0.03);border-color:rgba(212,175,55,0.14);">
+            <div class="card-body">
+              <div class="fw-semibold text-light">Boleta electrónica</div>
+              <div class="small" style="color:var(--bc-muted);">Referencia oficial del SII para emisión de boletas de ventas y servicios.</div>
+            </div>
+          </div>
+        </a>
+        <a class="billing-link" href="{{ sii_fee_receipt_url }}" target="_blank" rel="noopener noreferrer">
+          <div class="card" style="background:rgba(255,255,255,0.03);border-color:rgba(212,175,55,0.14);">
+            <div class="card-body">
+              <div class="fw-semibold text-light">Boleta de honorarios</div>
+              <div class="small" style="color:var(--bc-muted);">Acceso oficial del SII para boletas de honorarios electrónicas.</div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4" style="background:rgba(212,175,55,0.04);border-color:rgba(212,175,55,0.12);">
+  <div class="card-body">
+    <div class="billing-kicker mb-2">Flujo recomendado</div>
+    <div style="color:var(--bc-muted);line-height:1.8;">
+      1. El cliente compra o solicita el servicio.<br>
+      2. Usa este enlace para pedir el documento tributario correcto.<br>
+      3. El equipo valida datos tributarios y emite desde el canal oficial correspondiente.<br>
+      4. Se responde con el respaldo emitido al mismo correo del solicitante.
+    </div>
+  </div>
+</div>
+{% endblock %}

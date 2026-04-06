@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Garzones y Barra | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .pg-wrap { display:grid; gap:24px; }
+  .pg-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .pg-head h1 { margin:0; font-family:var(--bc-serif); color:var(--bc-cream); font-size:30px; }
+  .pg-head p { margin:8px 0 0; color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; }
+  .pg-btn { display:inline-flex; align-items:center; justify-content:center; padding:9px 16px; border-radius:4px; text-decoration:none; border:1px solid rgba(212,175,55,0.28); color:var(--bc-gold); font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+  .pg-btn:hover { background:var(--bc-gold-glow); color:var(--bc-gold); }
+  .pg-grid { display:grid; gap:16px; }
+  .pg-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:20px; }
+  .pg-title { margin:0 0 14px; font-family:var(--bc-serif); font-size:24px; color:var(--bc-cream); }
+  .pg-table { width:100%; border-collapse:collapse; }
+  .pg-table th, .pg-table td { padding:12px 10px; border-bottom:1px solid rgba(212,175,55,0.08); text-align:left; }
+  .pg-table th { color:var(--bc-muted); font-family:var(--bc-sans); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
+  .pg-table td { color:var(--bc-cream); font-family:var(--bc-sans); font-size:13px; }
+  .pg-pill { display:inline-block; margin-right:6px; margin-bottom:6px; padding:4px 8px; border-radius:999px; background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.18); color:var(--bc-gold); font-size:10px; font-family:var(--bc-sans); }
+  .pg-warn { color:#fca5a5; font-size:11px; font-family:var(--bc-sans); }
+</style>
+
+<div class="pg-wrap">
+  <div class="pg-head">
+    <div>
+      <h1>Control de garzones y barra</h1>
+      <p>Resumen {{ period }} entre {{ start_date|date:"d/m/Y" }} y {{ end_date|date:"d/m/Y" }}.</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{% url 'comandas:panel_comandas' %}?period={{ period }}" class="pg-btn">Volver al panel</a>
+      <a href="?period=daily" class="pg-btn">Diario</a>
+      <a href="?period=weekly" class="pg-btn">Semanal</a>
+      <a href="?period=monthly" class="pg-btn">Mensual</a>
+    </div>
+  </div>
+
+  <div class="pg-card">
+    <h2 class="pg-title">Equipo en servicio</h2>
+    <table class="pg-table">
+      <thead>
+        <tr>
+          <th>Codigo</th>
+          <th>Garzon</th>
+          <th>Zona</th>
+          <th>Mesas asignadas</th>
+          <th>Comandas</th>
+          <th>Abiertas</th>
+          <th>Ventas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in garzon_rows %}
+        <tr>
+          <td>{% if row.perfil.codigo_operador %}G{{ row.perfil.codigo_operador|stringformat:"02d" }}{% else %}-{% endif %}</td>
+          <td>
+            {{ row.nombre }}
+            {% if row.sobrecupo %}
+            <div class="pg-warn">Mas de 5 mesas asignadas.</div>
+            {% endif %}
+          </td>
+          <td>{{ row.zona }}</td>
+          <td>
+            {% for mesa in row.mesas_asignadas %}
+            <span class="pg-pill">{% if mesa.zona == 'barra' %}B{{ mesa.numero }}{% else %}{{ mesa.numero }}{% endif %}</span>
+            {% empty %}
+            <span style="color:var(--bc-muted);">Sin asignacion</span>
+            {% endfor %}
+          </td>
+          <td>{{ row.comandas_periodo }}</td>
+          <td>{{ row.abiertas }}</td>
+          <td>${{ row.ventas_periodo|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No hay garzones activos configurados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pg-card">
+    <h2 class="pg-title">Operacion de barra</h2>
+    {% if bartender_rows %}
+    <p style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:13px;">La barra se inicializa con 10 puestos independientes para que el bartender gestione sus pedidos y tiempos.</p>
+    {% else %}
+    <p style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:13px;">Aun no hay un perfil de garzon/bartender asignado a la zona barra. Puedes hacerlo desde administracion de usuarios y luego reasignar las mesas.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Mesa {{ mesa.numero }} | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .mesa-wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 22px; }
+  .mesa-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 6px; padding: 24px; }
+  .mesa-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .mesa-head h1 { margin:0; font-family:var(--bc-serif); color:var(--bc-cream); font-size:30px; }
+  .mesa-meta { margin-top:8px; color:var(--bc-muted); font-family:var(--bc-sans); font-size:13px; }
+  .mesa-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .mesa-btn { display:inline-flex; align-items:center; justify-content:center; padding:10px 18px; border-radius:4px; text-decoration:none; font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+  .mesa-btn-primary { background:var(--bc-gold); color:var(--bc-bg); border:none; }
+  .mesa-btn-outline { color:var(--bc-gold); border:1px solid rgba(212,175,55,0.3); }
+  .mesa-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  @media (max-width: 860px) { .mesa-grid { grid-template-columns:1fr; } }
+  .mesa-kpi { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
+  .mesa-kpi-box { background:rgba(212,175,55,0.05); border:1px solid rgba(212,175,55,0.12); border-radius:4px; padding:14px; }
+  .mesa-kpi-num { color:var(--bc-gold); font-family:var(--bc-serif); font-size:24px; }
+  .mesa-kpi-label { color:var(--bc-muted); font-family:var(--bc-sans); font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+  .mesa-list { display:grid; gap:10px; }
+  .mesa-row { display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid rgba(212,175,55,0.08); }
+</style>
+
+<div class="mesa-wrap">
+  <div class="mesa-card">
+    <div class="mesa-head">
+      <div>
+        <h1>{% if mesa.zona == 'barra' %}Puesto de barra {{ mesa.numero }}{% else %}Mesa {{ mesa.numero }}{% endif %}</h1>
+        <div class="mesa-meta">
+          {{ mesa.get_zona_display }} · Capacidad {{ mesa.capacidad }} · Responsable {{ mesa.responsable_label }}
+        </div>
+      </div>
+      <div class="mesa-actions">
+        <a href="{% url 'comandas:layout_mesas' %}" class="mesa-btn mesa-btn-outline">Volver</a>
+        {% if comanda %}
+        <a href="{% url 'comandas:comanda_detalle' comanda.id %}" class="mesa-btn mesa-btn-primary">Abrir comanda activa</a>
+        {% else %}
+        <a href="{% url 'comandas:comanda_nueva' mesa.id %}" class="mesa-btn mesa-btn-primary">Crear comanda</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="mesa-grid">
+    <div class="mesa-card">
+      <h2 style="margin:0 0 14px;font-family:var(--bc-serif);color:var(--bc-cream);font-size:22px;">Estado operativo</h2>
+      <div class="mesa-kpi">
+        <div class="mesa-kpi-box">
+          <div class="mesa-kpi-num">{% if comanda %}1{% else %}0{% endif %}</div>
+          <div class="mesa-kpi-label">Comanda activa</div>
+        </div>
+        <div class="mesa-kpi-box">
+          <div class="mesa-kpi-num">{% if comanda %}{{ comanda.get_total_items }}{% else %}0{% endif %}</div>
+          <div class="mesa-kpi-label">Items cargados</div>
+        </div>
+        <div class="mesa-kpi-box">
+          <div class="mesa-kpi-num">{% if comanda %}${{ comanda.get_total_with_tax|floatformat:0 }}{% else %}$0{% endif %}</div>
+          <div class="mesa-kpi-label">Total actual</div>
+        </div>
+      </div>
+      {% if comanda %}
+      <div style="margin-top:18px;color:var(--bc-muted);font-family:var(--bc-sans);font-size:13px;">
+        Comanda {{ comanda.folio }} · {{ comanda.get_estado_display }} · {{ comanda.creada_at|date:"d/m/Y H:i" }}
+      </div>
+      {% else %}
+      <div style="margin-top:18px;color:var(--bc-muted);font-family:var(--bc-sans);font-size:13px;">
+        Esta mesa no tiene consumo abierto. Puedes iniciar una comanda general y seguir sumando pedidos parciales.
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="mesa-card">
+      <h2 style="margin:0 0 14px;font-family:var(--bc-serif);color:var(--bc-cream);font-size:22px;">Ultimas comandas</h2>
+      <div class="mesa-list">
+        {% for historial in ultimas_comandas %}
+        <div class="mesa-row">
+          <div>
+            <div style="color:var(--bc-cream);font-family:var(--bc-sans);">{{ historial.folio }}</div>
+            <div style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">
+              {{ historial.creada_at|date:"d/m/Y H:i" }} · {{ historial.get_estado_display }}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:var(--bc-gold);font-family:var(--bc-serif);">${{ historial.get_total_with_tax|floatformat:0 }}</div>
+            <div style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">
+              {{ historial.garzon.get_full_name|default:historial.garzon.username }}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div style="color:var(--bc-muted);font-family:var(--bc-sans);">No hay historial registrado para esta mesa.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

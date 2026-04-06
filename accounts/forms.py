@@ -9,6 +9,8 @@ class CustomerRegisterForm(UserCreationForm):
     first_name = forms.CharField(max_length=150, required=False, label='Nombre')
     last_name = forms.CharField(max_length=150, required=False, label='Apellido')
     email = forms.EmailField(required=True, label='Email')
+    mobile_phone = forms.CharField(max_length=20, required=False, label='Celular')
+    landline_phone = forms.CharField(max_length=20, required=False, label='Telefono fijo')
     zone = forms.ChoiceField(choices=ZONE_CHOICES, label='Zona')
     sector = forms.ChoiceField(choices=SECTOR_CHOICES, label='Sector')
     default_address = forms.CharField(
@@ -19,7 +21,12 @@ class CustomerRegisterForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'zone', 'sector', 'default_address', 'password1', 'password2')
+        fields = (
+            'username', 'first_name', 'last_name', 'email',
+            'mobile_phone', 'landline_phone',
+            'zone', 'sector', 'default_address',
+            'password1', 'password2'
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

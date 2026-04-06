@@ -22,6 +22,8 @@
   .ts-table th { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(212,175,55,0.1); }
   .ts-table td { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); padding: 11px 12px; border-bottom: 1px solid rgba(212,175,55,0.06); vertical-align: middle; }
   .ts-table tr:last-child td { border-bottom: none; }
+  .ts-inline-link { color: var(--bc-gold); text-decoration: none; }
+  .ts-inline-link:hover { color: #f6d365; text-decoration: underline; }
 </style>
 
 <div class="ts-header">
@@ -38,6 +40,9 @@
     </a>
     <a href="{% url 'orders:dispatch_dashboard' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">
       <i class="bi bi-truck me-1"></i> Despacho
+    </a>
+    <a href="{% url 'contact:billing_hub' %}" style="border:1px solid rgba(212,175,55,0.3);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border-radius:2px;text-decoration:none;">
+      <i class="bi bi-receipt-cutoff me-1"></i> Tributario
     </a>
   </div>
 </div>
@@ -142,14 +147,14 @@
       {% for payment in ecommerce_validaciones_recientes %}
       <tr>
         <td>{{ payment.confirmed_at|default:payment.created_at|date:"d/m/Y H:i" }}</td>
-        <td>#{{ payment.order.id }}</td>
+        <td><a href="{% url 'payments:payment_authorize' payment.pk %}" class="ts-inline-link">#{{ payment.order.id }}</a></td>
         <td>{{ payment.order.folio }}</td>
         <td>{{ payment.user.get_full_name|default:payment.user.username }}</td>
         <td>
           {% if payment.status == 'completed' %}
-          <span style="color:#86efac;">Aprobada</span>
+          <a href="{% url 'catalog:panel_orden_detalle' payment.order.pk %}" class="ts-inline-link" style="color:#86efac;">Aprobada</a>
           {% else %}
-          <span style="color:#fca5a5;">Rechazada</span>
+          <a href="{% url 'catalog:panel_orden_detalle' payment.order.pk %}" class="ts-inline-link" style="color:#fca5a5;">Rechazada</a>
           {% endif %}
         </td>
         <td>{{ payment.validation_reference_display|default:"Sin codigo" }}</td>
@@ -157,6 +162,46 @@
           Ref: {{ payment.reference|default:"Sin referencia" }}
           {% if payment.review_notes %}<br>{{ payment.review_notes }}{% endif %}
           {% if payment.approved_by %}<br>Por: {{ payment.approved_by.get_full_name|default:payment.approved_by.username }}{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if ecommerce_notificaciones_recientes %}
+<div class="ts-card">
+  <div class="ts-card-title">Historial Automatizaciones Tienda</div>
+  <table class="ts-table">
+    <thead>
+      <tr>
+        <th>Fecha y hora</th>
+        <th>Orden</th>
+        <th>Destino</th>
+        <th>Canal</th>
+        <th>Estado</th>
+        <th>Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for notification in ecommerce_notificaciones_recientes %}
+      <tr>
+        <td>{{ notification.created_at|date:"d/m/Y H:i" }}</td>
+        <td><a href="{% url 'catalog:panel_orden_detalle' notification.order.pk %}" class="ts-inline-link">#{{ notification.order.id }}</a></td>
+        <td>{{ notification.get_recipient_type_display }}</td>
+        <td>{{ notification.get_channel_display }}</td>
+        <td>
+          {% if notification.status == 'closed' %}
+          <a href="{% url 'catalog:panel_orden_detalle' notification.order.pk %}" class="ts-inline-link" style="color:#86efac;">Cerrado</a>
+          {% else %}
+          <a href="{% url 'catalog:panel_orden_detalle' notification.order.pk %}" class="ts-inline-link" style="color:#fde047;">Pendiente</a>
+          {% endif %}
+        </td>
+        <td>
+          {{ notification.subject }}
+          {% if notification.recipient_email %}<br>{{ notification.recipient_email }}{% endif %}
+          {% if notification.recipient_phone %}<br>{{ notification.recipient_phone }}{% endif %}
         </td>
       </tr>
       {% endfor %}

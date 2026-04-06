@@ -1,120 +1,61 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Recibo #{{ pago.id }} &middot; Boccato{% endblock %}
+{% block title %}Recibo #{{ pago.id }} | Boccato{% endblock %}
 
 {% block content %}
 <style>
-  .recibo-wrap { max-width: 480px; margin: 0 auto; }
+  .recibo-wrap { max-width: 520px; margin: 0 auto; }
   .recibo { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.2); border-radius: 4px; padding: 36px 32px; }
-  .recibo-logo { text-align: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.12); }
-  .recibo-logo-name { font-family: var(--bc-serif); font-size: 22px; font-style: italic; color: var(--bc-cream); }
-  .recibo-logo-name span { color: var(--bc-gold); }
-  .recibo-logo-sub { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--bc-muted); margin-top: 4px; }
-  .recibo-num { text-align: center; margin-bottom: 20px; }
-  .recibo-num-label { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-muted); }
-  .recibo-num-val { font-family: var(--bc-serif); font-size: 28px; color: var(--bc-gold); }
-  .recibo-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(212,175,55,0.08); }
-  .recibo-info-label { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); margin-bottom: 3px; }
-  .recibo-info-val { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); }
-  .recibo-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; }
-  .recibo-item-nombre { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); }
-  .recibo-item-cant { font-family: var(--bc-sans); font-size: 12px; color: var(--bc-muted); margin: 0 8px; }
-  .recibo-item-precio { font-family: var(--bc-serif); font-size: 14px; color: var(--bc-gold); }
-  .recibo-total-final { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 0; margin-top: 8px; border-top: 1px solid rgba(212,175,55,0.15); }
-  .recibo-total-final span:first-child { font-family: var(--bc-sans); font-size: 13px; font-weight: 500; color: var(--bc-cream); letter-spacing: 1px; text-transform: uppercase; }
-  .recibo-total-final span:last-child { font-family: var(--bc-serif); font-size: 26px; font-weight: 600; color: var(--bc-gold); }
-  @media print {
-    .no-print { display: none !important; }
-    body { background: white !important; }
-    .recibo { border: 1px solid #ccc !important; background: white !important; color: black !important; }
-  }
+  .recibo-row { display:flex; justify-content:space-between; gap:16px; padding:6px 0; }
+  .recibo-row span:first-child { color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; }
+  .recibo-row span:last-child { color:var(--bc-cream); font-family:var(--bc-serif); font-size:15px; }
+  .recibo-total { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:14px; border-top:1px solid rgba(212,175,55,0.15); }
+  .recibo-total span:first-child { color:var(--bc-muted); text-transform:uppercase; letter-spacing:1px; font-family:var(--bc-sans); font-size:12px; }
+  .recibo-total span:last-child { color:var(--bc-gold); font-family:var(--bc-serif); font-size:26px; }
+  @media print { .no-print { display:none !important; } body { background:#fff !important; } }
 </style>
 
 <div class="recibo-wrap">
   <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-    <a href="{% url 'caja:dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;">← Caja</a>
-    <button onclick="window.print()"
-            style="background:var(--bc-gold);color:var(--bc-bg);font-family:var(--bc-sans);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;border:none;border-radius:2px;cursor:pointer;">
-      <i class="bi bi-printer me-1"></i> Imprimir
-    </button>
+    <a href="{% url 'caja:dashboard' %}" style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);text-decoration:none;">&larr; Caja</a>
+    <button onclick="window.print()" style="background:var(--bc-gold);color:var(--bc-bg);font-family:var(--bc-sans);font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;border:none;border-radius:2px;cursor:pointer;">Imprimir</button>
   </div>
-
-  {% if pago.estado == 'pendiente' %}
-  <div class="no-print" style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.25);border-radius:3px;padding:12px 16px;margin-bottom:16px;text-align:center;">
-    <p style="font-family:var(--bc-sans);font-size:12px;color:#fde047;margin:0;">
-      <i class="bi bi-clock me-2"></i>Pendiente autorización Tesorero
-    </p>
-  </div>
-  {% endif %}
 
   <div class="recibo">
-    <div class="recibo-logo">
-      <div class="recibo-logo-name"><span>Boccato</span> di Cardinale</div>
-      <div class="recibo-logo-sub">Boutique Gourmet &middot; Santiago</div>
-    </div>
-    <div class="recibo-num">
-      <div class="recibo-num-label">Recibo N°</div>
-      <div class="recibo-num-val">{{ pago.id|stringformat:"05d" }}</div>
-    </div>
-    <div class="recibo-info">
-      <div>
-        <div class="recibo-info-label">Mesa</div>
-        <div class="recibo-info-val">{{ pago.comanda.mesa.numero }}</div>
-      </div>
-      <div>
-        <div class="recibo-info-label">Fecha</div>
-        <div class="recibo-info-val">{{ pago.creado_at|date:"d/m/Y H:i" }}</div>
-      </div>
-      <div>
-        <div class="recibo-info-label">Garzón</div>
-        <div class="recibo-info-val">{{ pago.comanda.garzon.get_full_name|default:pago.comanda.garzon.username }}</div>
-      </div>
-      <div>
-        <div class="recibo-info-label">Cajero</div>
-        <div class="recibo-info-val">{{ pago.cajero.get_full_name|default:pago.cajero.username }}</div>
-      </div>
+    <div style="text-align:center;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid rgba(212,175,55,0.12);">
+      <div style="font-family:var(--bc-serif);font-size:24px;color:var(--bc-cream);"><span style="color:var(--bc-gold);">Boccato</span> di Cardinale</div>
+      <div style="font-family:var(--bc-sans);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--bc-muted);margin-top:4px;">Boutique Gourmet · Santiago</div>
     </div>
 
-    <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(212,175,55,0.08);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-family:var(--bc-sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--bc-muted);">Comanda</div>
+      <div style="font-family:var(--bc-serif);font-size:28px;color:var(--bc-gold);">{{ pago.comanda.folio }}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid rgba(212,175,55,0.08);">
+      <div><div style="color:var(--bc-muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">Mesa</div><div style="color:var(--bc-cream);">{{ pago.comanda.mesa.numero }}</div></div>
+      <div><div style="color:var(--bc-muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">Fecha</div><div style="color:var(--bc-cream);">{{ pago.creado_at|date:"d/m/Y H:i" }}</div></div>
+      <div><div style="color:var(--bc-muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">Garzon</div><div style="color:var(--bc-cream);">{{ pago.comanda.garzon.get_full_name|default:pago.comanda.garzon.username }}</div></div>
+      <div><div style="color:var(--bc-muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">Cajero</div><div style="color:var(--bc-cream);">{{ pago.cajero.get_full_name|default:pago.cajero.username }}</div></div>
+    </div>
+
+    <div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.08);">
       {% for item in pago.comanda.items.all %}
-      <div class="recibo-item">
-        <div>
-          <span class="recibo-item-nombre">{{ item.nombre_item }}</span>
-          <span class="recibo-item-cant">x{{ item.cantidad }}</span>
-        </div>
-        <span class="recibo-item-precio">${{ item.subtotal|floatformat:0 }}</span>
+      <div class="recibo-row">
+        <span>{{ item.nombre_item }} x{{ item.cantidad }}</span>
+        <span>${{ item.subtotal|floatformat:0 }}</span>
       </div>
       {% endfor %}
     </div>
 
-    <div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;">
-        <span style="font-family:var(--bc-sans);font-size:12px;color:var(--bc-muted);">Subtotal</span>
-        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-cream);">${{ pago.monto_total|floatformat:0 }}</span>
-      </div>
-      {% if pago.propina > 0 %}
-      <div style="display:flex;justify-content:space-between;padding:6px 0;">
-        <span style="font-family:var(--bc-sans);font-size:12px;color:var(--bc-muted);">Propina</span>
-        <span style="font-family:var(--bc-serif);font-size:14px;color:var(--bc-cream);">${{ pago.propina|floatformat:0 }}</span>
-      </div>
-      {% endif %}
-      <div class="recibo-total-final">
-        <span>Total</span>
-        <span>${{ pago.get_total_con_propina|floatformat:0 }}</span>
-      </div>
-    </div>
+    <div class="recibo-row"><span>Subtotal neto</span><span>${{ pago.get_net_total|floatformat:0 }}</span></div>
+    <div class="recibo-row"><span>IVA 19%</span><span>${{ pago.get_tax_amount|floatformat:0 }}</span></div>
+    <div class="recibo-row"><span>Total comanda</span><span>${{ pago.monto_total|floatformat:0 }}</span></div>
+    <div class="recibo-row"><span>Propina</span><span>${{ pago.propina|floatformat:0 }}</span></div>
+    <div class="recibo-total"><span>Total final</span><span>${{ pago.get_total_con_propina|floatformat:0 }}</span></div>
 
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(212,175,55,0.08);">
-      <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);color:var(--bc-gold);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border-radius:2px;">
-        {% if pago.metodo == 'efectivo' %}💵{% elif 'tarjeta' in pago.metodo %}💳{% else %}🏦{% endif %}
-        {{ pago.get_metodo_display }}
-        {% if pago.ultimos_4 %}&nbsp;****{{ pago.ultimos_4 }}{% endif %}
-      </span>
-    </div>
-
-    <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid rgba(212,175,55,0.08);">
-      <p style="font-family:var(--bc-serif);font-style:italic;font-size:13px;color:var(--bc-muted);margin:0;">¡Gracias por su visita!</p>
-      <p style="font-family:var(--bc-sans);font-size:11px;color:var(--bc-muted);margin:4px 0 0;">contacto@boccato.cl</p>
+    <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid rgba(212,175,55,0.08);color:var(--bc-muted);font-size:12px;">
+      Metodo: {{ pago.get_metodo_display }}{% if pago.ultimos_4 %} · ****{{ pago.ultimos_4 }}{% endif %}{% if pago.referencia %} · Ref {{ pago.referencia }}{% endif %}
     </div>
   </div>
 </div>

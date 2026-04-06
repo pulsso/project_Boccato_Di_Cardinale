@@ -369,6 +369,12 @@
             <i class="bi bi-speedometer2"></i> Panel
           </a></li>
         {% endif %}
+        {% if user.is_authenticated and user.perfil_garzon %}
+          <li><a class="nav-link" style="color:var(--bc-gold)!important;"
+                 href="{% url 'comandas:layout_mesas' %}">
+            <i class="bi bi-grid"></i> Comandas
+          </a></li>
+        {% endif %}
 
         <!-- CARRITO -->
         <li>

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from io import BytesIO
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -9,22 +10,20 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 from django.http import HttpResponse
 
 
-def generate_ticket(order):
+def build_ticket_pdf(order):
     try:
         payment = order.payment
     except Exception:
         payment = None
     is_approved = bool(payment and payment.status == 'completed')
+    is_rejected = bool(payment and payment.status == 'failed')
     tax_multiplier = Decimal('1.19')
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="pedido_boccato_{order.id}.pdf"'
-
-    doc = SimpleDocTemplate(response, pagesize=letter)
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
     elements = []
     styles = getSampleStyleSheet()
 
-    is_rejected = bool(payment and payment.status == 'failed')
     title = 'Nota de Venta' if is_approved else 'Pedido Pendiente'
     if is_approved:
         payment_state = 'Aprobado por tesorero'
@@ -40,7 +39,13 @@ def generate_ticket(order):
     elements.append(Paragraph(f'Folio pedido: {order.folio}', styles['Normal']))
     elements.append(Paragraph(f'Fecha: {order.created_at.strftime("%d/%m/%Y")}', styles['Normal']))
     elements.append(Paragraph(f'Hora: {order.created_at.strftime("%H:%M")}', styles['Normal']))
-    elements.append(Paragraph(f'Cliente: {order.user.get_full_name() or order.user.username}', styles['Normal']))
+    elements.append(Paragraph(f'Cliente: {order.customer_full_name}', styles['Normal']))
+    if order.customer_email:
+        elements.append(Paragraph(f'Email: {order.customer_email}', styles['Normal']))
+    if order.customer_mobile_phone:
+        elements.append(Paragraph(f'Celular: {order.customer_mobile_phone}', styles['Normal']))
+    if order.customer_landline_phone:
+        elements.append(Paragraph(f'Telefono fijo: {order.customer_landline_phone}', styles['Normal']))
     elements.append(Paragraph(f'Direccion: {order.shipping_address or "No especificada"}', styles['Normal']))
     elements.append(Paragraph(f'Pago: {payment_state}', styles['Normal']))
     if payment and payment.treasury_number_display:
@@ -69,13 +74,11 @@ def generate_ticket(order):
         ])
 
     data.append(['', '', 'NETO', f'${order.get_net_total():,.0f}'])
+    data.append(['', '', 'IVA 19%', f'${order.get_tax_amount():,.0f}'])
+    data.append(['', '', 'DESPACHO', f'${order.get_delivery_fee():,.0f}'])
     if is_approved:
-        data.append(['', '', 'IVA 19%', f'${order.get_tax_amount():,.0f}'])
-        data.append(['', '', 'DESPACHO', f'${order.get_delivery_fee():,.0f}'])
         data.append(['', '', 'TOTAL', f'${order.get_grand_total():,.0f}'])
     else:
-        data.append(['', '', 'IVA 19%', f'${order.get_tax_amount():,.0f}'])
-        data.append(['', '', 'DESPACHO', f'${order.get_delivery_fee():,.0f}'])
         data.append(['', '', 'TOTAL EST.', f'${order.get_grand_total():,.0f}'])
 
     table = Table(data, colWidths=[3 * inch, 1 * inch, 1.5 * inch, 1.5 * inch])
@@ -94,4 +97,12 @@ def generate_ticket(order):
     elements.append(Paragraph(f'Impreso Boccato di Cardinale - {order.created_at.strftime("%d/%m/%Y %H:%M")}', styles['Normal']))
 
     doc.build(elements)
+    return buffer.getvalue()
+
+
+def generate_ticket(order):
+    pdf_bytes = build_ticket_pdf(order)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="pedido_boccato_{order.id}.pdf"'
+    response.write(pdf_bytes)
     return response

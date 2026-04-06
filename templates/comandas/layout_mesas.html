@@ -1,110 +1,141 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Mesas &middot; Boccato di Cardinale{% endblock %}
+{% block title %}Mesas | Boccato di Cardinale{% endblock %}
 
 {% block content %}
 <style>
-  .gc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(212,175,55,0.12); flex-wrap: wrap; gap: 12px; }
-  .gc-header h1 { font-family: var(--bc-serif); font-size: 24px; font-weight: 400; color: var(--bc-cream); margin: 0; }
-  .gc-header-meta { font-family: var(--bc-sans); font-size: 12px; color: var(--bc-muted); }
-
-  .gc-stats { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
-  .gc-stat { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 14px 20px; }
-  .gc-stat-num { font-family: var(--bc-serif); font-size: 24px; color: var(--bc-gold); line-height: 1; }
-  .gc-stat-label { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bc-muted); margin-top: 3px; }
-
-  .gc-zona-title { font-family: var(--bc-sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--bc-gold); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(212,175,55,0.1); display: flex; align-items: center; gap: 8px; }
-  .gc-zona-title::before { content: '✦'; font-size: 8px; }
-
-  .gc-mesas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 36px; }
-
-  .gc-mesa-btn { background: var(--bc-surface); border: 2px solid rgba(212,175,55,0.15); border-radius: 8px; padding: 18px 12px; text-align: center; text-decoration: none; transition: all 0.2s; cursor: pointer; display: block; }
-  .gc-mesa-btn:hover { border-color: var(--bc-gold); background: var(--bc-gold-glow); }
-  .gc-mesa-btn.ocupada { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.05); }
-  .gc-mesa-btn.ocupada:hover { border-color: rgba(239,68,68,0.7); }
-
-  .gc-mesa-num { font-family: var(--bc-serif); font-size: 28px; font-weight: 400; color: var(--bc-cream); line-height: 1; margin-bottom: 4px; }
-  .gc-mesa-btn.ocupada .gc-mesa-num { color: #fca5a5; }
-
-  .gc-mesa-cap { font-family: var(--bc-sans); font-size: 11px; color: var(--bc-muted); margin-bottom: 8px; }
-
-  .gc-mesa-status { font-family: var(--bc-sans); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
-  .gc-mesa-status.libre { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
-  .gc-mesa-status.ocupada { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
-
-  .gc-mesa-garzon { font-family: var(--bc-sans); font-size: 11px; color: var(--bc-muted); margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .gc-garzon-info { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 4px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
-  .gc-garzon-avatar { width: 36px; height: 36px; background: var(--bc-gold-glow); border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--bc-serif); font-size: 16px; color: var(--bc-gold); flex-shrink: 0; }
-  .gc-garzon-name { font-family: var(--bc-sans); font-size: 13px; color: var(--bc-cream); }
-  .gc-garzon-role { font-family: var(--bc-sans); font-size: 11px; color: var(--bc-muted); letter-spacing: 0.5px; }
+  .gc-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:28px; padding-bottom:18px; border-bottom:1px solid rgba(212,175,55,0.12); flex-wrap:wrap; }
+  .gc-header h1 { margin:0; font-family:var(--bc-serif); font-size:28px; color:var(--bc-cream); }
+  .gc-header p { margin:6px 0 0; color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; }
+  .gc-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .gc-btn { border:1px solid rgba(212,175,55,0.28); color:var(--bc-gold); text-decoration:none; padding:8px 15px; border-radius:2px; font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+  .gc-btn:hover { background:var(--bc-gold-glow); color:var(--bc-gold); }
+  .gc-summary { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:28px; }
+  .gc-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:18px; }
+  .gc-card-number { font-family:var(--bc-serif); font-size:26px; color:var(--bc-gold); }
+  .gc-card-label { margin-top:5px; color:var(--bc-muted); font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+  .gc-zone { margin-bottom:32px; }
+  .gc-zone-title { margin:0 0 14px; padding-bottom:9px; border-bottom:1px solid rgba(212,175,55,0.1); color:var(--bc-gold); font-family:var(--bc-sans); font-size:11px; letter-spacing:2px; text-transform:uppercase; }
+  .gc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:14px; }
+  .gc-mesa { display:block; text-decoration:none; padding:18px 16px; border-radius:8px; background:var(--bc-surface); border:1px solid rgba(212,175,55,0.14); transition:transform .15s ease, border-color .15s ease, background .15s ease; }
+  .gc-mesa:hover { transform:translateY(-2px); border-color:rgba(212,175,55,0.45); background:rgba(212,175,55,0.05); }
+  .gc-mesa.ocupada { border-color:rgba(239,68,68,0.35); background:rgba(239,68,68,0.06); }
+  .gc-mesa-num { font-family:var(--bc-serif); font-size:28px; color:var(--bc-cream); }
+  .gc-mesa-meta { color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; margin-top:6px; }
+  .gc-badge { display:inline-block; margin-top:12px; padding:4px 8px; border-radius:999px; font-family:var(--bc-sans); font-size:10px; letter-spacing:1px; text-transform:uppercase; }
+  .gc-badge.free { color:#86efac; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.25); }
+  .gc-badge.busy { color:#fca5a5; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25); }
+  .gc-mesa-extra { margin-top:10px; color:var(--bc-muted); font-family:var(--bc-sans); font-size:11px; }
+  .gc-empty { text-align:center; padding:56px 24px; color:var(--bc-muted); background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; }
+  .gc-operator { display:grid; gap:14px; margin-bottom:22px; background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:18px; }
+  .gc-operator-row { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; }
+  .gc-operator-form { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+  .gc-operator-form input { background:var(--bc-surface2); color:var(--bc-cream); border:1px solid rgba(212,175,55,0.22); border-radius:4px; padding:9px 10px; min-width:120px; }
 </style>
 
 <div class="gc-header">
-  <h1>Layout de Mesas</h1>
-  <div class="gc-header-meta">
-    Boccato di Cardinale &middot; {% now "d/m/Y H:i" %}
-  </div>
-</div>
-
-<!-- Info garzón -->
-<div class="gc-garzon-info">
-  <div class="gc-garzon-avatar">{{ request.user.username|first|upper }}</div>
   <div>
-    <div class="gc-garzon-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-    <div class="gc-garzon-role">Garz&oacute;n en servicio</div>
+    <h1>Operacion de mesas</h1>
+    <p>
+      Gestion tactil para garzones y administracion.
+      {% if zona_asignada %}Zona sugerida: {{ zona_asignada }}.{% endif %}
+    </p>
   </div>
-  <div style="margin-left:auto;">
-    <a href="{% url 'menu:carta_home' %}" style="font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bc-gold);text-decoration:none;border:1px solid rgba(212,175,55,0.3);padding:7px 14px;border-radius:2px;">
-      Ver Carta
-    </a>
-  </div>
-</div>
-
-<!-- Stats -->
-<div class="gc-stats">
-  <div class="gc-stat">
-    <div class="gc-stat-num">{{ total_mesas }}</div>
-    <div class="gc-stat-label">Total mesas</div>
-  </div>
-  <div class="gc-stat">
-    <div class="gc-stat-num" style="color:#fca5a5;">{{ mesas_ocupadas }}</div>
-    <div class="gc-stat-label">Ocupadas</div>
-  </div>
-  <div class="gc-stat">
-    <div class="gc-stat-num" style="color:#86efac;">{{ total_mesas|add:"-"|add:mesas_ocupadas }}</div>
-    <div class="gc-stat-label">Disponibles</div>
+  <div class="gc-actions">
+    {% if can_view_dashboard %}
+    <a href="{% url 'comandas:panel_comandas' %}" class="gc-btn">Control general</a>
+    {% endif %}
+    <a href="{% url 'comandas:kitchen_dashboard' %}" class="gc-btn">Cocina</a>
+    <a href="{% url 'menu:carta_home' %}" class="gc-btn">Ver carta</a>
   </div>
 </div>
 
-<!-- Mesas por zona -->
-{% for zona_nombre, mesas_zona in zonas.items %}
-<div>
-  <div class="gc-zona-title">{{ zona_nombre }}</div>
-  <div class="gc-mesas-grid">
-    {% for item in mesas_zona %}
-    <a href="{% url 'comandas:mesa_detalle' item.mesa.pk %}"
-       class="gc-mesa-btn {% if item.ocupada %}ocupada{% endif %}">
-      <div class="gc-mesa-num">{{ item.mesa.numero }}</div>
-      <div class="gc-mesa-cap"><i class="bi bi-people"></i> {{ item.mesa.capacidad }}</div>
-      {% if item.ocupada %}
-        <span class="gc-mesa-status ocupada">Ocupada</span>
-        {% if item.comanda.garzon %}
-        <div class="gc-mesa-garzon">{{ item.comanda.garzon.get_full_name|default:item.comanda.garzon.username }}</div>
+<section class="gc-operator">
+  <div class="gc-operator-row">
+    <div>
+      <div class="gc-card-label" style="margin-top:0;">Operador activo en pedestal</div>
+      <div style="font-family:var(--bc-serif);font-size:24px;color:var(--bc-cream);margin-top:6px;">
+        {% if operator_profile and operator_profile.codigo_operador %}
+          G{{ operator_profile.codigo_operador|stringformat:"02d" }}
+        {% else %}
+          {{ operator_user.get_full_name|default:operator_user.username }}
         {% endif %}
-      {% else %}
-        <span class="gc-mesa-status libre">Libre</span>
+      </div>
+      <div class="gc-mesa-meta">
+        {{ operator_user.get_full_name|default:operator_user.username }}
+        {% if operator_profile and operator_profile.zona_asignada %} · {{ operator_profile.get_zona_asignada_display }}{% endif %}
+      </div>
+    </div>
+    {% if shared_terminal_mode %}
+    <form method="post" action="{% url 'comandas:liberar_operador' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button type="submit" class="gc-btn" style="background:transparent;">Liberar operador</button>
+    </form>
+    {% endif %}
+  </div>
+  {% if shared_terminal_mode %}
+  <form method="post" action="{% url 'comandas:seleccionar_operador' %}" class="gc-operator-form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <div>
+      <div class="gc-card-label" style="margin:0 0 6px;">Codigo</div>
+      {{ operator_form.codigo_operador }}
+    </div>
+    <div>
+      <div class="gc-card-label" style="margin:0 0 6px;">PIN</div>
+      {{ operator_form.pin }}
+    </div>
+    <button type="submit" class="gc-btn" style="background:var(--bc-gold);color:var(--bc-bg);">Cambiar operador</button>
+  </form>
+  {% endif %}
+</section>
+
+<div class="gc-summary">
+  <div class="gc-card">
+    <div class="gc-card-number">{{ total_mesas }}</div>
+    <div class="gc-card-label">Mesas visibles</div>
+  </div>
+  <div class="gc-card">
+    <div class="gc-card-number">{{ mesas_ocupadas }}</div>
+    <div class="gc-card-label">Con comanda activa</div>
+  </div>
+  <div class="gc-card">
+    <div class="gc-card-number">{{ assigned_count }}</div>
+    <div class="gc-card-label">Mesas asignadas al usuario</div>
+  </div>
+  <div class="gc-card">
+    <div class="gc-card-number">{{ total_mesas|add:"-"|add:mesas_ocupadas }}</div>
+    <div class="gc-card-label">Disponibles</div>
+  </div>
+</div>
+
+{% for zona_nombre, mesas_zona in zonas.items %}
+<section class="gc-zone">
+  <h2 class="gc-zone-title">{{ zona_nombre }}</h2>
+  <div class="gc-grid">
+    {% for item in mesas_zona %}
+    <a href="{% url 'comandas:mesa_detalle' item.mesa.pk %}" class="gc-mesa {% if item.ocupada %}ocupada{% endif %}">
+      <div class="gc-mesa-num">
+        {% if item.mesa.zona == 'barra' %}B{{ item.mesa.numero }}{% else %}{{ item.mesa.numero }}{% endif %}
+      </div>
+      <div class="gc-mesa-meta">Capacidad {{ item.mesa.capacidad }} persona{{ item.mesa.capacidad|pluralize:"s" }}</div>
+      <span class="gc-badge {% if item.ocupada %}busy{% else %}free{% endif %}">
+        {% if item.ocupada %}En servicio{% else %}Disponible{% endif %}
+      </span>
+      <div class="gc-mesa-extra">Responsable: {{ item.mesa.responsable_label }}</div>
+      {% if item.ocupada %}
+      <div class="gc-mesa-extra">Comanda {{ item.comanda.folio }} · {{ item.comanda.get_estado_display }}</div>
       {% endif %}
     </a>
     {% endfor %}
   </div>
-</div>
+</section>
 {% empty %}
-<div style="text-align:center;padding:48px;color:var(--bc-muted);">
-  <div style="font-size:2.5rem;opacity:0.3;margin-bottom:12px;"><i class="bi bi-grid"></i></div>
-  <p style="font-family:var(--bc-serif);font-style:italic;">No hay mesas configuradas.<br>
-  <small><a href="{% url 'comandas:panel_mesas' %}" style="color:var(--bc-gold);">Agregar mesas desde el panel</a></small></p>
+<div class="gc-empty">
+  No hay mesas configuradas todavia.
+  <br>
+  <a href="{% url 'comandas:panel_mesas' %}" class="gc-btn" style="display:inline-block;margin-top:16px;">Abrir panel de mesas</a>
 </div>
 {% endfor %}
-
 {% endblock %}

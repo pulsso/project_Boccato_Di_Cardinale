@@ -231,7 +231,7 @@ def registrar_pago(request, comanda_id):
                 pago.comanda = comanda
                 pago.apertura_caja = apertura_activa
                 pago.cajero = request.user
-                pago.monto_total = comanda.get_total()
+                pago.monto_total = comanda.get_total_with_tax()
 
                 if pago.metodo == 'transferencia':
                     pago.estado = 'pendiente'
@@ -254,12 +254,15 @@ def registrar_pago(request, comanda_id):
 
             return redirect('caja:recibo', pago_id=pago.id)
     else:
-        form = PagoForm(initial={'monto_total': comanda.get_total()})
+        form = PagoForm(initial={'propina': comanda.get_suggested_tip()})
 
     return render(request, 'caja/registrar_pago.html', {
         'form': form,
         'comanda': comanda,
-        'total': comanda.get_total(),
+        'total': comanda.get_total_with_tax(),
+        'subtotal_neto': comanda.get_net_total(),
+        'iva_amount': comanda.get_tax_amount(),
+        'suggested_tip': comanda.get_suggested_tip(),
     })
 
 
@@ -362,6 +365,7 @@ def historial_pagos(request):
 def tesorero_dashboard(request):
     hoy = timezone.now().date()
     from payments.models import Payment as StorePayment
+    from orders.models import OrderNotification
 
     aperturas_pendientes = AperturaCaja.objects.filter(estado='pendiente').select_related('cajero')
     cierres_pendientes = CierreCaja.objects.filter(estado='pendiente').select_related('cajero', 'apertura')
@@ -374,6 +378,9 @@ def tesorero_dashboard(request):
     ecommerce_validaciones_recientes = StorePayment.objects.exclude(
         status='pending'
     ).select_related('order', 'user', 'approved_by')
+    ecommerce_notificaciones_recientes = OrderNotification.objects.filter(
+        order__payment__method='transfer'
+    ).select_related('order', 'recipient_user').order_by('-created_at')[:12]
 
     pagos_hoy = Pago.objects.filter(creado_at__date=hoy, estado='aprobado')
     total_hoy = pagos_hoy.aggregate(t=Sum('monto_total'))['t'] or 0
@@ -399,6 +406,7 @@ def tesorero_dashboard(request):
         'transferencias_pendientes': transferencias_pendientes,
         'ecommerce_transferencias_pendientes': ecommerce_transferencias_pendientes,
         'ecommerce_validaciones_recientes': ecommerce_validaciones_recientes[:10],
+        'ecommerce_notificaciones_recientes': ecommerce_notificaciones_recientes,
         'total_hoy': total_hoy,
         'propinas_hoy': propinas_hoy,
         'resumen': resumen,

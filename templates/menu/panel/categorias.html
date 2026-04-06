@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Categorias de Carta | Boccato{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1">Categorias de Carta</h2>
+    <p class="text-muted mb-0">Organiza los platos por seccion de carta para que aparezcan ordenados.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'menu:panel_menu' %}">Volver al panel</a>
+    <a class="btn btn-primary" href="{% url 'menu:panel_categoria_crear' %}">Nueva categoria</a>
+  </div>
+</div>
+
+<div class="card p-0 overflow-hidden">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Orden</th>
+          <th>Activa</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for categoria in categorias %}
+        <tr>
+          <td>
+            <strong>{{ categoria.nombre }}</strong>
+            {% if categoria.descripcion %}<div class="small text-muted">{{ categoria.descripcion }}</div>{% endif %}
+          </td>
+          <td>{{ categoria.get_tipo_display }}</td>
+          <td>{{ categoria.orden }}</td>
+          <td>{% if categoria.activa %}Si{% else %}No{% endif %}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'menu:panel_categoria_editar' categoria.pk %}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'menu:panel_categoria_eliminar' categoria.pk %}">Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4">No hay categorias creadas.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

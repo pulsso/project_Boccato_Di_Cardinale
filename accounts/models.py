@@ -9,6 +9,8 @@ class CustomerProfile(models.Model):
     zone = models.CharField(max_length=20, choices=ZONE_CHOICES, blank=True)
     sector = models.CharField(max_length=30, choices=SECTOR_CHOICES, blank=True)
     default_address = models.TextField(blank=True)
+    mobile_phone = models.CharField(max_length=20, blank=True)
+    landline_phone = models.CharField(max_length=20, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

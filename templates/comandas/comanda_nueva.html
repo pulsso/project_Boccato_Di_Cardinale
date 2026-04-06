@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Nueva Comanda | Boccato{% endblock %}
+
+{% block content %}
+<div class="card p-4" style="max-width:640px;margin:0 auto;">
+  <h1 style="font-family:var(--bc-serif);color:var(--bc-cream);">Nueva comanda para mesa {{ mesa.numero }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Numero de comensales</label>
+      <input class="form-control" type="number" name="num_comensales" min="1" value="1" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Notas iniciales</label>
+      <textarea class="form-control" name="notas" rows="3" placeholder="Observaciones generales"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Abrir comanda</button>
+  </form>
+</div>
+{% endblock %}

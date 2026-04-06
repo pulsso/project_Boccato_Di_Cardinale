@@ -20,6 +20,7 @@
     transition: border-color 0.2s;
   }
   .pn-stat-card:hover { border-color: var(--bc-gold); }
+  .pn-stat-card.is-link { cursor: pointer; }
   .pn-stat-label {
     font-family: var(--bc-sans);
     font-size: 10px; letter-spacing: 2px;
@@ -107,6 +108,7 @@
   .pn-accion-oferta { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #d8b4fe; }
   .pn-accion-campana { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); color: #d8b4fe; }
   .pn-accion-stock { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; }
+  .pn-stat-link { display:block; text-decoration:none; color:inherit; }
 </style>
 
 <!-- STATS -->
@@ -308,6 +310,41 @@
           `Total: $${Math.round(point.total)}<br>` +
           `${point.status}`
         );
+    });
+  })();
+</script>
+<script>
+  (function() {
+    const statCards = document.querySelectorAll('.pn-stats-grid .pn-stat-card');
+    const cardRoutes = [
+      "{% url 'catalog:panel_productos' %}",
+      "{% url 'catalog:panel_categorias' %}",
+      "{% url 'catalog:panel_ordenes' %}?status=pending",
+      "{% url 'catalog:panel_ordenes' %}",
+      "{% url 'catalog:panel_ofertas' %}",
+      "{% url 'catalog:panel_campanas' %}",
+      "{% url 'catalog:panel_productos' %}",
+      "{% url 'catalog:panel_ordenes' %}",
+      "{% url 'catalog:panel_ordenes' %}",
+    ];
+
+    statCards.forEach((card, index) => {
+      const target = cardRoutes[index];
+      if (!target) {
+        return;
+      }
+      card.classList.add('is-link');
+      card.setAttribute('role', 'link');
+      card.setAttribute('tabindex', '0');
+      card.addEventListener('click', () => {
+        window.location.href = target;
+      });
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          window.location.href = target;
+        }
+      });
     });
   })();
 </script>

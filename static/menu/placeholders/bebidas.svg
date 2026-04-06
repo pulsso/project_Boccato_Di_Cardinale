@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#dcebf1"/><stop offset="100%" stop-color="#6aa7c1"/></linearGradient></defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <rect x="100" y="90" width="1000" height="520" rx="30" fill="#f8fdff" opacity=".92"/>
+  <path d="M630 180h98l-22 112v180c0 22-18 40-40 40h-32c-22 0-40-18-40-40V292z" fill="#f0c75b"/>
+  <path d="M758 220h96v250c0 22-18 40-40 40h-16c-22 0-40-18-40-40z" fill="#8fd1e8"/>
+  <path d="M650 180V138M684 180V138" stroke="#f0c75b" stroke-width="12" stroke-linecap="round"/>
+  <text x="146" y="168" fill="#5d8392" font-family="Georgia, serif" font-size="28">Boccato di Cardinale</text>
+  <text x="146" y="530" fill="#10303e" font-family="Georgia, serif" font-size="58">Bebidas</text>
+</svg>

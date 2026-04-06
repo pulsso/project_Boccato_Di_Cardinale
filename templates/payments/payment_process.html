@@ -9,6 +9,11 @@
       <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--bc-gold);font-family:var(--bc-sans);margin-bottom:10px;">
         Pedido pendiente
       </div>
+      <div class="small mb-3" style="color:var(--bc-muted);">
+        Cliente: {{ order.customer_full_name }}<br>
+        Email: {{ order.customer_email }}<br>
+        Celular: {{ order.customer_mobile_phone }}{% if order.customer_landline_phone %}<br>Fijo: {{ order.customer_landline_phone }}{% endif %}
+      </div>
       {% for item in order.items.all %}
       <div class="d-flex justify-content-between mb-2">
         <span>{{ item.product.name }} x{{ item.quantity }}</span>
@@ -65,7 +70,7 @@
       <p class="mb-0"><strong>Correo:</strong> {{ bank_details.email }}</p>
       <hr>
       <p class="mb-0" style="color:var(--bc-muted);">
-        Tu pedido queda con pago pendiente hasta que el tesorero lo apruebe y le asigne un registro numerico de 8 cifras.
+        Al informar la transferencia se enviara automaticamente el pedido en PDF a despacho y tesoreria. Luego, cuando tesoreria autorice, el cliente recibira la confirmacion por email y quedara una cola automatica para WhatsApp.
       </p>
     </div>
   </div>

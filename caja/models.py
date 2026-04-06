@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
 from comandas.models import Comanda
+from decimal import Decimal, ROUND_HALF_UP
+
+IVA_RATE = Decimal('0.19')
 
 
 class PerfilCaja(models.Model):
@@ -213,6 +216,12 @@ class Pago(models.Model):
 
     def get_total_con_propina(self):
         return self.monto_total + self.propina
+
+    def get_net_total(self):
+        return (Decimal(self.monto_total) / Decimal('1.19')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+
+    def get_tax_amount(self):
+        return Decimal(self.monto_total) - self.get_net_total()
 
     def __str__(self):
         return f'Pago #{self.id} - Mesa {self.comanda.mesa.numero} - ${self.monto_total}'

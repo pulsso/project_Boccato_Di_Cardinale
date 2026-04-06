@@ -49,11 +49,20 @@
 <div class="pn-nav">
   <a href="{% url 'catalog:panel_dashboard' %}" class="pn-nav-btn {% block nav_dashboard %}{% endblock %}"><i class="bi bi-grid"></i> Dashboard</a>
   <a href="{% url 'catalog:panel_productos' %}" class="pn-nav-btn {% block nav_productos %}{% endblock %}"><i class="bi bi-box-seam"></i> Productos</a>
-  <a href="{% url 'catalog:panel_categorias' %}" class="pn-nav-btn {% block nav_categorias %}{% endblock %}"><i class="bi bi-tags"></i> Categorías</a>
+  <a href="{% url 'catalog:panel_categorias' %}" class="pn-nav-btn {% block nav_categorias %}{% endblock %}"><i class="bi bi-tags"></i> Categorias</a>
   <a href="{% url 'catalog:panel_ofertas' %}" class="pn-nav-btn {% block nav_ofertas %}{% endblock %}"><i class="bi bi-percent"></i> Ofertas</a>
-  <a href="{% url 'catalog:panel_campanas' %}" class="pn-nav-btn {% block nav_campanas %}{% endblock %}"><i class="bi bi-megaphone"></i> Campañas</a>
-  <a href="{% url 'catalog:panel_ordenes' %}" class="pn-nav-btn {% block nav_ordenes %}{% endblock %}"><i class="bi bi-bag-check"></i> Órdenes</a>
-  <a href="{% url 'catalog:panel_galeria' %}" class="pn-nav-btn {% block nav_galeria %}{% endblock %}"><i class="bi bi-images"></i> Galería</a>
+  <a href="{% url 'catalog:panel_campanas' %}" class="pn-nav-btn {% block nav_campanas %}{% endblock %}"><i class="bi bi-megaphone"></i> Campanas</a>
+  <a href="{% url 'catalog:panel_ordenes' %}" class="pn-nav-btn {% block nav_ordenes %}{% endblock %}"><i class="bi bi-bag-check"></i> Ordenes</a>
+  <a href="{% url 'catalog:panel_galeria' %}" class="pn-nav-btn {% block nav_galeria %}{% endblock %}"><i class="bi bi-images"></i> Galeria</a>
   <a href="{% url 'catalog:panel_historial' %}" class="pn-nav-btn {% block nav_historial %}{% endblock %}"><i class="bi bi-clock-history"></i> Historial</a>
   <a href="{% url 'catalog:panel_reportes' %}" class="pn-nav-btn {% block nav_reportes %}{% endblock %}"><i class="bi bi-bar-chart"></i> Reportes</a>
+  {% if request.user.is_staff %}
+  <a href="{% url 'comandas:panel_comandas' %}" class="pn-nav-btn"><i class="bi bi-journal-check"></i> Comandas</a>
+  <a href="{% url 'comandas:panel_mesas' %}" class="pn-nav-btn"><i class="bi bi-grid-3x3-gap"></i> Mesas</a>
+  <a href="{% url 'comandas:panel_garzones' %}" class="pn-nav-btn"><i class="bi bi-people"></i> Garzones</a>
+  <a href="{% url 'comandas:kitchen_dashboard' %}" class="pn-nav-btn"><i class="bi bi-fire"></i> Cocina</a>
+  {% endif %}
+  {% if request.user.is_superuser %}
+  <a href="{% url 'contact:billing_hub' %}" class="pn-nav-btn"><i class="bi bi-receipt-cutoff"></i> Tributario</a>
+  {% endif %}
 </div>

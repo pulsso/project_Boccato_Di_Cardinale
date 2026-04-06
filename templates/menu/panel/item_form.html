@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} | Boccato{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1">{{ titulo }}</h2>
+    <p class="text-muted mb-0">Puedes subir imagen propia o usar una URL externa para la carta.</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'menu:panel_items' %}">Volver</a>
+</div>
+
+<div class="card p-4">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-md-{% if field.name == 'descripcion' %}12{% else %}6{% endif %}">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="d-flex gap-2 mt-4">
+      <button class="btn btn-primary" type="submit">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{% url 'menu:panel_items' %}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

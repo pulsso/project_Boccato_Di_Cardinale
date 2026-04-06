@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Panel Menus | Boccato{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1">Panel de Cartas</h2>
+    <p class="text-muted mb-0">Desde aqui puedes cargar imagenes, crear platos y actualizar ofertas.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'menu:panel_categorias' %}">Categorias</a>
+    <a class="btn btn-outline-secondary" href="{% url 'menu:panel_items' %}">Platos</a>
+    <a class="btn btn-primary" href="{% url 'menu:panel_item_crear' %}">Nuevo plato</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for tipo, data in stats.items %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card p-3 h-100">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h5 class="mb-0">{{ data.label }}</h5>
+        <span class="badge bg-dark">{{ tipo }}</span>
+      </div>
+      <p class="mb-1">Categorias: <strong>{{ data.categorias }}</strong></p>
+      <p class="mb-1">Platos: <strong>{{ data.items }}</strong></p>
+      <p class="mb-1">Disponibles: <strong>{{ data.disponibles }}</strong></p>
+      <p class="mb-3">Ofertas: <strong>{{ data.ofertas }}</strong></p>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'menu:panel_items' %}?tipo={{ tipo }}">Administrar {{ data.label }}</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

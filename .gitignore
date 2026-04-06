@@ -1,17 +1,22 @@
-# Entorno virtual
+﻿# Virtual environments
 venv/
 .venv/
 env/
+.python-version
 
-# Variables de entorno
+# Environment and secrets
 .env
 .env.*
 !.env.example
+.envrc
 *.pem
 *.key
 *.crt
+*.p12
+*.pfx
+secrets.*
 
-# Python
+# Python cache and tooling
 __pycache__/
 *.pyc
 *.pyo
@@ -19,37 +24,38 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
+pip-wheel-metadata/
 
-# Django
+# Django / databases
 db.sqlite3
 *.sqlite3
+*.sqlite3-journal
 *.log
-
-# Media uploads
+staticfiles/
 media/
 
-# Static collected
-staticfiles/
-
-# OS / IDE
+# IDE / OS
 .DS_Store
 .vscode/
 .idea/
 Thumbs.db
 
-# Backups
+# Backups and archives
 *.zip
 *.bak
 *.tmp
 
-# Node / frontend caches
+# Frontend caches
 node_modules/
 npm-debug.log*
 yarn-error.log*
 
-# Build / packaging
+# Packaging
 dist/
 build/
 *.egg-info/

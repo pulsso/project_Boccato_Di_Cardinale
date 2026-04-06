@@ -29,6 +29,11 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    customer_first_name = models.CharField(max_length=150, blank=True)
+    customer_last_name = models.CharField(max_length=150, blank=True)
+    customer_email = models.EmailField(blank=True)
+    customer_mobile_phone = models.CharField(max_length=20, blank=True)
+    customer_landline_phone = models.CharField(max_length=20, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     shipping_address = models.TextField(blank=True)
     notes = models.TextField(blank=True)
@@ -53,6 +58,11 @@ class Order(models.Model):
 
     def __str__(self):
         return f'Orden #{self.id} - {self.user.username}'
+
+    @property
+    def customer_full_name(self):
+        full_name = f'{self.customer_first_name} {self.customer_last_name}'.strip()
+        return full_name or self.user.get_full_name() or self.user.username
 
     @property
     def folio(self):
@@ -137,21 +147,30 @@ class OrderNotification(models.Model):
     RECIPIENT_CHOICES = [
         ('customer', 'Cliente'),
         ('dispatch', 'Despacho'),
+        ('treasury', 'Tesoreria'),
     ]
 
     CHANNEL_CHOICES = [
         ('system', 'Sistema'),
         ('email', 'Email'),
+        ('whatsapp', 'WhatsApp'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('closed', 'Cerrado'),
     ]
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='notifications')
     recipient_type = models.CharField(max_length=20, choices=RECIPIENT_CHOICES)
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES, default='system')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     recipient_user = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='order_notifications'
     )
     recipient_email = models.EmailField(blank=True)
+    recipient_phone = models.CharField(max_length=20, blank=True)
     subject = models.CharField(max_length=200)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

@@ -143,6 +143,9 @@
 }
 .oferta-card:last-child { margin-bottom: 0; }
 .oferta-card:hover { border-color: var(--c-gold); transform: translateX(3px); }
+.oferta-card-top { display:flex; gap:12px; align-items:flex-start; }
+.oferta-card-thumb { width:72px; height:72px; object-fit:cover; border-radius:4px; border:1px solid rgba(180,150,46,0.18); flex-shrink:0; background:#f0ebe0; }
+.oferta-card-copy { flex:1; min-width:0; }
 .oferta-card-tipo {
   font-family: var(--c-sans);
   font-size: 9px;
@@ -320,13 +323,15 @@
 /* Ítem en índice */
 .menu-item {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 16px; padding: 16px 0;
   border-bottom: 1px solid rgba(180,150,46,0.07);
   align-items: start;
 }
 .menu-item:last-child { border-bottom: none; }
 .menu-item:hover { background: rgba(180,150,46,0.03); margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+.menu-item-thumb { width:84px; height:84px; object-fit:cover; border-radius:4px; border:1px solid rgba(180,150,46,0.16); background:#f0ebe0; flex-shrink:0; }
+.menu-item-copy { min-width:0; }
 .menu-item-nombre-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .menu-item-nombre { font-family: var(--c-serif); font-size: 17px; font-weight: 600; color: var(--c-text); }
 .menu-badge-chef { background: var(--c-gold); color: white; font-family: var(--c-sans); font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
@@ -384,17 +389,24 @@
       <div>
         {% for item in ofertas_izq %}
         <a href="#sec-{{ item.categoria.tipo }}" class="oferta-card">
-          <div class="oferta-card-tipo">{{ item.categoria.get_tipo_display }}</div>
-          <div class="oferta-card-nombre">{{ item.nombre }}</div>
-          {% if item.descripcion %}<div class="oferta-card-desc">{{ item.descripcion|truncar_descripcion:65 }}</div>{% endif %}
-          <div class="oferta-precios">
-            {% if item.tiene_oferta %}
-              <span class="oferta-precio-orig">${{ item.precio|floatformat:0 }}</span>
-              <span class="oferta-precio-nuevo">${{ item.precio_oferta|floatformat:0 }}</span>
-              <span class="oferta-badge">-{{ item.descuento_porcentaje }}%</span>
-            {% else %}
-              <span class="oferta-precio-nuevo">${{ item.precio|floatformat:0 }}</span>
+          <div class="oferta-card-top">
+            {% if item.display_image_url %}
+            <img src="{{ item.display_image_url }}" alt="{{ item.nombre }}" class="oferta-card-thumb" loading="lazy">
             {% endif %}
+            <div class="oferta-card-copy">
+              <div class="oferta-card-tipo">{{ item.categoria.get_tipo_display }}</div>
+              <div class="oferta-card-nombre">{{ item.nombre }}</div>
+              {% if item.descripcion %}<div class="oferta-card-desc">{{ item.descripcion|truncar_descripcion:65 }}</div>{% endif %}
+              <div class="oferta-precios">
+                {% if item.tiene_oferta %}
+                  <span class="oferta-precio-orig">${{ item.precio|floatformat:0 }}</span>
+                  <span class="oferta-precio-nuevo">${{ item.precio_oferta|floatformat:0 }}</span>
+                  <span class="oferta-badge">-{{ item.descuento_porcentaje }}%</span>
+                {% else %}
+                  <span class="oferta-precio-nuevo">${{ item.precio|floatformat:0 }}</span>
+                {% endif %}
+              </div>
+            </div>
           </div>
         </a>
         {% empty %}
@@ -536,17 +548,24 @@
       <div>
         {% for item in ofertas_der %}
         <a href="#sec-{{ item.categoria.tipo }}" class="oferta-card">
-          <div class="oferta-card-tipo">{{ item.categoria.get_tipo_display }}</div>
-          <div class="oferta-card-nombre">{{ item.nombre }}</div>
-          {% if item.descripcion %}<div class="oferta-card-desc">{{ item.descripcion|truncar_descripcion:65 }}</div>{% endif %}
-          <div class="oferta-precios">
-            {% if item.tiene_oferta %}
-              <span class="oferta-precio-orig">${{ item.precio|floatformat:0 }}</span>
-              <span class="oferta-precio-nuevo">${{ item.precio_oferta|floatformat:0 }}</span>
-              <span class="oferta-badge">-{{ item.descuento_porcentaje }}%</span>
-            {% else %}
-              <span class="oferta-precio-nuevo">${{ item.precio|floatformat:0 }}</span>
+          <div class="oferta-card-top">
+            {% if item.display_image_url %}
+            <img src="{{ item.display_image_url }}" alt="{{ item.nombre }}" class="oferta-card-thumb" loading="lazy">
             {% endif %}
+            <div class="oferta-card-copy">
+              <div class="oferta-card-tipo">{{ item.categoria.get_tipo_display }}</div>
+              <div class="oferta-card-nombre">{{ item.nombre }}</div>
+              {% if item.descripcion %}<div class="oferta-card-desc">{{ item.descripcion|truncar_descripcion:65 }}</div>{% endif %}
+              <div class="oferta-precios">
+                {% if item.tiene_oferta %}
+                  <span class="oferta-precio-orig">${{ item.precio|floatformat:0 }}</span>
+                  <span class="oferta-precio-nuevo">${{ item.precio_oferta|floatformat:0 }}</span>
+                  <span class="oferta-badge">-{{ item.descuento_porcentaje }}%</span>
+                {% else %}
+                  <span class="oferta-precio-nuevo">${{ item.precio|floatformat:0 }}</span>
+                {% endif %}
+              </div>
+            </div>
           </div>
         </a>
         {% empty %}
@@ -606,6 +625,11 @@
       {% if seccion.tipo == 'desayuno' %}<a href="{% url 'menu:desayuno' %}" class="menu-sec-btn">Carta completa →</a>
       {% elif seccion.tipo == 'brunch' %}<a href="{% url 'menu:brunch' %}" class="menu-sec-btn">Carta completa →</a>
       {% elif seccion.tipo == 'almuerzo' %}<a href="{% url 'menu:almuerzo' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'postres' %}<a href="{% url 'menu:postres' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'infantil' %}<a href="{% url 'menu:infantil' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'te_cafe' %}<a href="{% url 'menu:te_cafe' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'bebidas' %}<a href="{% url 'menu:bebidas' %}" class="menu-sec-btn">Carta completa →</a>
+      {% elif seccion.tipo == 'llevar' %}<a href="{% url 'menu:llevar' %}" class="menu-sec-btn">Carta completa →</a>
       {% elif seccion.tipo == 'cena' %}<a href="{% url 'menu:cena' %}" class="menu-sec-btn">Carta completa →</a>
       {% elif seccion.tipo == 'terraza' %}<a href="{% url 'menu:terraza' %}" class="menu-sec-btn">Carta completa →</a>
       {% elif seccion.tipo == 'vinos' %}<a href="{% url 'menu:vinos' %}" class="menu-sec-btn">Carta completa →</a>
@@ -619,7 +643,10 @@
     {% if items_sec %}
       {% for item in items_sec %}
       <div class="menu-item">
-        <div>
+        {% if item.display_image_url %}
+        <img src="{{ item.display_image_url }}" alt="{{ item.nombre }}" class="menu-item-thumb" loading="lazy">
+        {% endif %}
+        <div class="menu-item-copy">
           <div class="menu-item-nombre-row">
             <span class="menu-item-nombre">{{ item.nombre }}</span>
             {% if item.destacado %}<span class="menu-badge-chef">✦ Chef</span>{% endif %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .mf-wrap { max-width: 760px; margin: 0 auto; }
+  .mf-card { background: var(--bc-surface); border: 1px solid rgba(212,175,55,0.12); border-radius: 6px; padding: 24px; }
+  .mf-title { margin: 0 0 18px; font-family: var(--bc-serif); color: var(--bc-cream); font-size: 30px; }
+  .mf-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width: 760px) { .mf-grid { grid-template-columns:1fr; } }
+  .mf-field label { display:block; margin-bottom:7px; color:var(--bc-muted); font-family:var(--bc-sans); font-size:11px; text-transform:uppercase; letter-spacing:1px; }
+  .mf-field input, .mf-field select { width:100%; background:var(--bc-surface2); color:var(--bc-cream); border:1px solid rgba(212,175,55,0.22); border-radius:4px; padding:10px 12px; font-family:var(--bc-sans); }
+  .mf-actions { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .mf-btn { display:inline-flex; align-items:center; justify-content:center; padding:10px 16px; border-radius:4px; text-decoration:none; font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+  .mf-btn-primary { background:var(--bc-gold); color:var(--bc-bg); border:none; }
+  .mf-btn-outline { color:var(--bc-gold); border:1px solid rgba(212,175,55,0.28); }
+</style>
+
+<div class="mf-wrap">
+  <div class="mf-card">
+    <h1 class="mf-title">{{ titulo }}</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mf-grid">
+        {% for field in form %}
+        <div class="mf-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<div style="color:#fca5a5;font-size:12px;margin-top:6px;">{{ field.errors|striptags }}</div>{% endif %}
+          {% if field.help_text %}<div style="color:var(--bc-muted);font-size:11px;margin-top:6px;">{{ field.help_text }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mf-actions">
+        <button type="submit" class="mf-btn mf-btn-primary">Guardar</button>
+        <a href="{% url 'comandas:panel_mesas' %}" class="mf-btn mf-btn-outline">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

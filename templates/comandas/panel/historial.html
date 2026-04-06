@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Historial de Comandas | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .ph-wrap { display:grid; gap:24px; }
+  .ph-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:20px; }
+  .ph-table { width:100%; border-collapse:collapse; }
+  .ph-table th, .ph-table td { padding:12px 10px; border-bottom:1px solid rgba(212,175,55,0.08); text-align:left; }
+  .ph-table th { color:var(--bc-muted); font-family:var(--bc-sans); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
+  .ph-table td { color:var(--bc-cream); font-family:var(--bc-sans); font-size:13px; }
+</style>
+
+<div class="ph-wrap">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+    <div>
+      <h1 style="margin:0;font-family:var(--bc-serif);font-size:30px;color:var(--bc-cream);">Historial de comandas</h1>
+      <p style="margin:8px 0 0;color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">Revision cruzada para caja, tesoreria y administracion.</p>
+    </div>
+    <a href="{% url 'comandas:panel_comandas' %}" style="padding:9px 16px;border-radius:4px;border:1px solid rgba(212,175,55,0.28);color:var(--bc-gold);text-decoration:none;font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;">Volver al panel</a>
+  </div>
+
+  <div class="ph-card">
+    <form method="get" style="display:grid;grid-template-columns:1fr 220px auto;gap:10px;margin-bottom:18px;">
+      <input type="text" name="q" value="{{ query }}" placeholder="Folio, mesa o garzon" style="background:var(--bc-surface2);color:var(--bc-cream);border:1px solid rgba(212,175,55,0.22);border-radius:4px;padding:10px 12px;">
+      <select name="estado" style="background:var(--bc-surface2);color:var(--bc-cream);border:1px solid rgba(212,175,55,0.22);border-radius:4px;padding:10px 12px;">
+        <option value="">Todos los estados</option>
+        {% for value, label in estado_choices %}
+        <option value="{{ value }}" {% if estado == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" style="padding:10px 16px;border-radius:4px;border:none;background:var(--bc-gold);color:var(--bc-bg);font-family:var(--bc-sans);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;">Filtrar</button>
+    </form>
+
+    <table class="ph-table">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Mesa</th>
+          <th>Garzon</th>
+          <th>Estado</th>
+          <th>Creada</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for comanda in comandas %}
+        <tr>
+          <td><a href="{% url 'comandas:comanda_detalle' comanda.id %}" style="color:var(--bc-gold);text-decoration:none;">{{ comanda.folio }}</a></td>
+          <td>{{ comanda.mesa.numero }}</td>
+          <td>{{ comanda.garzon.get_full_name|default:comanda.garzon.username }}</td>
+          <td>{{ comanda.get_estado_display }}</td>
+          <td>{{ comanda.creada_at|date:"d/m/Y H:i" }}</td>
+          <td>${{ comanda.get_total_with_tax|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No hay comandas para los filtros aplicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Cocina | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .kd-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:24px; }
+  @media (max-width: 960px) { .kd-grid { grid-template-columns:1fr; } }
+  .kd-stat, .kd-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.15); border-radius:4px; padding:22px; }
+  .kd-stat-num { color:var(--bc-gold); font-family:var(--bc-serif); font-size:28px; }
+  .kd-item { padding:14px 0; border-bottom:1px solid rgba(212,175,55,0.08); }
+  .kd-item:last-child { border-bottom:none; }
+  .kd-row { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+</style>
+
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+  <div>
+    <div style="color:var(--bc-gold);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:var(--bc-sans);">Produccion interna</div>
+    <h1 style="margin:6px 0 0;font-family:var(--bc-serif);font-size:28px;color:var(--bc-cream);">Cocina y pase</h1>
+    <div style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">Vista cronologica de preparacion por comanda y por item</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="{% url 'comandas:layout_mesas' %}" class="btn btn-outline-light">Mesas</a>
+    <a href="{% url 'catalog:panel_dashboard' %}" class="btn btn-outline-warning">Panel admin</a>
+  </div>
+</div>
+
+<div class="kd-grid">
+  <div class="kd-stat"><div style="color:var(--bc-muted);font-size:11px;text-transform:uppercase;">Pendientes</div><div class="kd-stat-num">{{ pending_items }}</div></div>
+  <div class="kd-stat"><div style="color:var(--bc-muted);font-size:11px;text-transform:uppercase;">Preparando</div><div class="kd-stat-num">{{ preparing_items }}</div></div>
+  <div class="kd-stat"><div style="color:var(--bc-muted);font-size:11px;text-transform:uppercase;">Listos</div><div class="kd-stat-num">{{ ready_items }}</div></div>
+</div>
+
+<div class="kd-card">
+  <h2 style="margin:0 0 16px;font-family:var(--bc-serif);font-size:22px;color:var(--bc-cream);">Cola cronologica de cocina</h2>
+  {% for item in items_kitchen %}
+  <div class="kd-item">
+    <div class="kd-row">
+      <div>
+        <div style="color:var(--bc-cream);font-family:var(--bc-sans);font-size:15px;">Comanda {{ item.comanda.folio }} · Mesa {{ item.comanda.mesa.numero }}</div>
+        <div style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:18px;">{{ item.nombre_item }} x{{ item.cantidad }}</div>
+        <div style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">{{ item.creado_at|date:"d/m/Y H:i" }} · {{ item.comanda.garzon.get_full_name|default:item.comanda.garzon.username }}</div>
+        {% if item.notas %}<div style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">Nota: {{ item.notas }}</div>{% endif %}
+      </div>
+      <div style="text-align:right;min-width:200px;">
+        <div style="color:var(--bc-cream);font-size:13px;margin-bottom:8px;">Estado: {{ item.get_estado_display }}</div>
+        <button type="button" class="btn btn-sm btn-outline-warning" onclick="advanceItem({{ item.id }})">Avanzar estado</button>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div style="color:var(--bc-muted);font-family:var(--bc-sans);">No hay items pendientes para cocina.</div>
+  {% endfor %}
+</div>
+
+<div class="kd-card mt-4">
+  <h2 style="margin:0 0 16px;font-family:var(--bc-serif);font-size:22px;color:var(--bc-cream);">Comandas activas</h2>
+  {% for comanda in comandas_activas %}
+  <div class="kd-item">
+    <div class="kd-row">
+      <div>
+        <div style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:20px;">{{ comanda.folio }}</div>
+        <div style="color:var(--bc-cream);font-family:var(--bc-sans);font-size:14px;">Mesa {{ comanda.mesa.numero }} · {{ comanda.get_estado_display }}</div>
+        <div style="color:var(--bc-muted);font-family:var(--bc-sans);font-size:12px;">{{ comanda.creada_at|date:"d/m/Y H:i" }} · {{ comanda.get_total_items }} items</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:var(--bc-cream);font-size:13px;">Total con IVA</div>
+        <div style="color:var(--bc-gold);font-family:var(--bc-serif);font-size:20px;">${{ comanda.get_total_with_tax|floatformat:0 }}</div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div style="color:var(--bc-muted);font-family:var(--bc-sans);">No hay comandas activas.</div>
+  {% endfor %}
+</div>
+
+<script>
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+}
+async function advanceItem(itemId) {
+  const response = await fetch(`/comandas/api/item/${itemId}/toggle/`, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': getCookie('csrftoken')
+    }
+  });
+  if (response.ok) {
+    window.location.reload();
+  }
+}
+</script>
+{% endblock %}

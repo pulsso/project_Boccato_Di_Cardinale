@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,6 +11,7 @@ from caja.models import AperturaCaja, PerfilCaja, TransaccionCaja
 from config.security import sanitize_untrusted_text
 from inventory.models import StockMovement
 from orders.models import DispatchTask, Order, OrderNotification
+from orders.ticket import build_ticket_pdf
 
 from .models import (
     Payment,
@@ -27,6 +28,9 @@ BANK_DETAILS = {
     'rut': '76.456.321-9',
     'email': 'pagos@boccato.cl',
 }
+
+STORE_DISPATCH_EMAIL = 'compra_tienda@gmail.com'
+STORE_TREASURY_EMAIL = 'tesorero_bdc@gmail.com'
 
 
 def require_treasurer(view_func):
@@ -85,6 +89,7 @@ def _notify_order(order, recipient_type, subject, message_text, recipient_user=N
         order=order,
         recipient_type=recipient_type,
         channel='system',
+        status='closed',
         recipient_user=recipient_user,
         recipient_email=recipient_email,
         subject=subject,
@@ -104,6 +109,7 @@ def _notify_order(order, recipient_type, subject, message_text, recipient_user=N
             order=order,
             recipient_type=recipient_type,
             channel='email',
+            status='closed',
             recipient_user=recipient_user,
             recipient_email=email_target,
             subject=subject,
@@ -111,6 +117,91 @@ def _notify_order(order, recipient_type, subject, message_text, recipient_user=N
             sent_at=timezone.now(),
         )
     return notification
+
+
+def _queue_whatsapp_notification(order, recipient_type, subject, message_text, recipient_user=None, recipient_phone=''):
+    return OrderNotification.objects.create(
+        order=order,
+        recipient_type=recipient_type,
+        channel='whatsapp',
+        status='pending',
+        recipient_user=recipient_user,
+        recipient_phone=recipient_phone,
+        subject=subject,
+        message=message_text,
+    )
+
+
+def _send_pending_order_emails(order, payment):
+    pdf_bytes = build_ticket_pdf(order)
+    subject = f'Pedido tienda pendiente #{order.id} - {order.folio}'
+    message_text = (
+        f'Se registro una compra en tienda pendiente de validacion.\n\n'
+        f'Orden: #{order.id}\n'
+        f'Folio: {order.folio}\n'
+        f'Cliente: {order.customer_full_name}\n'
+        f'Email: {order.customer_email}\n'
+        f'Celular: {order.customer_mobile_phone}\n'
+        f'Direccion: {order.shipping_address}\n'
+        f'Total estimado: ${order.get_grand_total():,.0f}\n'
+        f'Referencia: {payment.reference or "sin referencia"}\n'
+        f'Estado: Pendiente de validacion\n'
+    )
+
+    for recipient_type, recipient_email in (
+        ('dispatch', STORE_DISPATCH_EMAIL),
+        ('treasury', STORE_TREASURY_EMAIL),
+    ):
+        OrderNotification.objects.create(
+            order=order,
+            recipient_type=recipient_type,
+            channel='system',
+            status='closed',
+            recipient_email=recipient_email,
+            subject=subject,
+            message=message_text,
+            sent_at=timezone.now(),
+        )
+        email = EmailMessage(
+            subject,
+            message_text,
+            getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@boccato.cl'),
+            [recipient_email],
+        )
+        email.attach(f'pedido_boccato_{order.id}.pdf', pdf_bytes, 'application/pdf')
+        email.send(fail_silently=True)
+        OrderNotification.objects.create(
+            order=order,
+            recipient_type=recipient_type,
+            channel='email',
+            status='closed',
+            recipient_email=recipient_email,
+            subject=subject,
+            message=message_text,
+            sent_at=timezone.now(),
+        )
+
+    _queue_whatsapp_notification(
+        order,
+        'dispatch',
+        f'WhatsApp despacho orden #{order.id}',
+        (
+            f'Nuevo pedido tienda pendiente #{order.id}. '
+            f'Cliente {order.customer_full_name}. '
+            f'Total estimado ${order.get_grand_total():,.0f}. '
+            f'Folio {order.folio}.'
+        ),
+    )
+    _queue_whatsapp_notification(
+        order,
+        'treasury',
+        f'WhatsApp tesoreria orden #{order.id}',
+        (
+            f'Validar pago pendiente de orden #{order.id}. '
+            f'Referencia {payment.reference or "sin referencia"}. '
+            f'Cliente {order.customer_full_name}.'
+        ),
+    )
 
 
 def _register_order_movements(order, payment):
@@ -201,6 +292,7 @@ def payment_process(request, order_id):
                 actor=request.user,
                 detail=f'Transferencia informada para orden #{order.id}. Ref: {reference}',
             )
+            _send_pending_order_emails(order, payment)
 
         messages.success(
             request,
@@ -241,9 +333,15 @@ def payment_authorize(request, payment_id):
         Payment.objects.select_related('order', 'user'),
         pk=payment_id,
         method='transfer',
-        status='pending',
     )
     security_settings = TreasuryAuthorizationSettings.get_solo()
+
+    if payment.status != 'pending':
+        messages.info(
+            request,
+            f'La transferencia de la orden #{payment.order.id} ya fue revisada con estado "{payment.get_status_display()}".'
+        )
+        return redirect('caja:tesorero_dashboard')
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -307,7 +405,20 @@ def payment_authorize(request, payment_id):
                     f'Pago aprobado orden #{payment.order.id}',
                     customer_message,
                     recipient_user=payment.user,
-                    recipient_email=payment.user.email,
+                    recipient_email=payment.order.customer_email or payment.user.email,
+                )
+                _queue_whatsapp_notification(
+                    payment.order,
+                    'customer',
+                    f'WhatsApp cliente orden #{payment.order.id}',
+                    (
+                        f'Hola {payment.order.customer_first_name or payment.user.username}, '
+                        f'tu pago fue aprobado para la orden #{payment.order.id}. '
+                        f'Boleta {payment.treasury_number_display}. '
+                        f'Pronta entrega estimada entre 15 y 30 minutos.'
+                    ),
+                    recipient_user=payment.user,
+                    recipient_phone=payment.order.customer_mobile_phone,
                 )
                 payment.dispatch_notified_at = timezone.now()
                 payment.customer_notified_at = timezone.now()
@@ -358,7 +469,19 @@ def payment_authorize(request, payment_id):
                     f'Pago rechazado orden #{payment.order.id}',
                     rejection_message,
                     recipient_user=payment.user,
-                    recipient_email=payment.user.email,
+                    recipient_email=payment.order.customer_email or payment.user.email,
+                )
+                _queue_whatsapp_notification(
+                    payment.order,
+                    'customer',
+                    f'WhatsApp cliente rechazo orden #{payment.order.id}',
+                    (
+                        f'Hola {payment.order.customer_first_name or payment.user.username}, '
+                        f'tu pago por la orden #{payment.order.id} fue rechazado. '
+                        f'Codigo {payment.rejection_code_display}.'
+                    ),
+                    recipient_user=payment.user,
+                    recipient_phone=payment.order.customer_mobile_phone,
                 )
                 payment.customer_notified_at = timezone.now()
                 payment.save(update_fields=['customer_notified_at'])

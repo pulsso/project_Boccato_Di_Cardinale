@@ -44,6 +44,11 @@
   <a href="{% url 'menu:desayuno' %}" {% if tipo == 'desayuno' %}class="active"{% endif %}>Desayuno</a>
   <a href="{% url 'menu:brunch' %}" {% if tipo == 'brunch' %}class="active"{% endif %}>Brunch</a>
   <a href="{% url 'menu:almuerzo' %}" {% if tipo == 'almuerzo' %}class="active"{% endif %}>Almuerzo</a>
+  <a href="{% url 'menu:postres' %}" {% if tipo == 'postres' %}class="active"{% endif %}>Postres</a>
+  <a href="{% url 'menu:infantil' %}" {% if tipo == 'infantil' %}class="active"{% endif %}>Infantil Dia</a>
+  <a href="{% url 'menu:te_cafe' %}" {% if tipo == 'te_cafe' %}class="active"{% endif %}>Te - Cafe</a>
+  <a href="{% url 'menu:bebidas' %}" {% if tipo == 'bebidas' %}class="active"{% endif %}>Bebidas</a>
+  <a href="{% url 'menu:llevar' %}" {% if tipo == 'llevar' %}class="active"{% endif %}>Para Llevar</a>
   <a href="{% url 'menu:cena' %}" {% if tipo == 'cena' %}class="active"{% endif %}>Cena</a>
   <a href="{% url 'menu:terraza' %}" {% if tipo == 'terraza' %}class="active"{% endif %}>Terraza</a>
   <a href="{% url 'menu:vinos' %}" {% if tipo == 'vinos' %}class="active"{% endif %}>Vinos</a>

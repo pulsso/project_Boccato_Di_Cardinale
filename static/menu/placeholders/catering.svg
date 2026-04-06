@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e9e4d6"/><stop offset="100%" stop-color="#b1a17b"/></linearGradient></defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <rect x="104" y="96" width="992" height="508" rx="30" fill="#fffdf7" opacity=".93"/>
+  <rect x="600" y="252" width="280" height="160" rx="22" fill="#f5efe0"/>
+  <rect x="620" y="226" width="240" height="48" rx="18" fill="#d6b373"/>
+  <circle cx="650" cy="340" r="28" fill="#b95d45"/>
+  <circle cx="720" cy="340" r="28" fill="#7da668"/>
+  <circle cx="790" cy="340" r="28" fill="#f0c86f"/>
+  <text x="146" y="168" fill="#8a7747" font-family="Georgia, serif" font-size="28">Boccato di Cardinale</text>
+  <text x="146" y="534" fill="#1f190e" font-family="Georgia, serif" font-size="58">Catering</text>
+</svg>

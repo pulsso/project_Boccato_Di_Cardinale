@@ -1,12 +1,18 @@
-{% extends "base.html" %}
-{% block title %}Contacto — CosmoStore{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}Contacto | Boccato{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2 class="fw-bold mb-4"><i class="bi bi-envelope"></i> Contáctanos</h2>
+<div class="row justify-content-center g-4">
+  <div class="col-lg-7">
     <div class="card shadow-sm">
-      <div class="card-body p-4">
+      <div class="card-body p-4 p-lg-5">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--bc-gold);font-family:var(--bc-sans);margin-bottom:10px;">
+          Contacto
+        </div>
+        <h2 class="fw-bold mb-3"><i class="bi bi-envelope"></i> Hablemos</h2>
+        <p class="mb-4" style="color:var(--bc-muted);">
+          Usa este formulario para consultas comerciales, soporte operativo o coordinación de pedidos.
+        </p>
         <form method="post">
           {% csrf_token %}
           {% for field in form %}
@@ -18,7 +24,9 @@
             {% endif %}
           </div>
           {% endfor %}
-          <button type="submit" class="btn btn-dark w-100">Enviar mensaje</button>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-dark">Enviar mensaje</button>
+          </div>
         </form>
       </div>
     </div>

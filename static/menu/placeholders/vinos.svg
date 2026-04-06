@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ecdfeb"/><stop offset="100%" stop-color="#8d5878"/></linearGradient></defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <rect x="110" y="98" width="980" height="504" rx="30" fill="#faf4f8" opacity=".94"/>
+  <path d="M708 162h82v124c0 60-40 110-92 126v96h102v34H606v-34h102v-96c-52-16-92-66-92-126V162z" fill="#7f2947"/>
+  <path d="M708 162h82v80c0 24-18 44-42 44h-2c-22 0-38-18-38-40z" fill="#c8a5b6"/>
+  <text x="150" y="170" fill="#8a4a70" font-family="Georgia, serif" font-size="28">Boccato di Cardinale</text>
+  <text x="150" y="536" fill="#2d1023" font-family="Georgia, serif" font-size="58">Vinos</text>
+</svg>

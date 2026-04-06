@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ebe4d8"/><stop offset="100%" stop-color="#c4b191"/></linearGradient></defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <rect x="110" y="90" width="980" height="520" rx="32" fill="#fbf7ef"/>
+  <ellipse cx="735" cy="352" rx="245" ry="172" fill="#e3d8c8"/>
+  <ellipse cx="735" cy="352" rx="186" ry="124" fill="#fffdf7"/>
+  <circle cx="640" cy="322" r="52" fill="#7db16a"/>
+  <circle cx="742" cy="364" r="84" fill="#d5b885"/>
+  <circle cx="834" cy="324" r="46" fill="#cf6947"/>
+  <path d="M850 236l84-96" stroke="#8b7c67" stroke-width="18" stroke-linecap="round"/>
+  <path d="M898 210l34 28M876 184l32 26M922 182l20 36" stroke="#8b7c67" stroke-width="8" stroke-linecap="round"/>
+  <text x="150" y="166" fill="#8a682d" font-family="Georgia, serif" font-size="28">Boccato di Cardinale</text>
+  <text x="150" y="540" fill="#1a1208" font-family="Georgia, serif" font-size="58">Almuerzo</text>
+</svg>

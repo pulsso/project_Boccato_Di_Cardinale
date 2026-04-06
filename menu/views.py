@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from PIL import Image
 
@@ -7,16 +8,58 @@ from .forms import CategoriaMenuForm, ItemMenuForm
 from .models import CategoriaMenu, ItemMenu
 
 
+def _local_menu_fallback(tipo):
+    file_by_tipo = {
+        'desayuno': 'desayuno.jpg',
+        'brunch': 'brunch.jpg',
+        'almuerzo': 'almuerzo.jpg',
+        'postres': 'postres.jpg',
+        'infantil': 'infantil.jpg',
+        'te_cafe': 'te_cafe.jpg',
+        'bebidas': 'bebidas.jpg',
+        'llevar': 'llevar.jpg',
+        'cena': 'cena.jpg',
+        'terraza': 'terraza.jpg',
+        'vinos': 'vinos.jpg',
+        'licores': 'licores.jpg',
+        'cocteles': 'cocteles.jpg',
+        'catering': 'catering.jpg',
+    }
+    return f"/static/menu/photos/{file_by_tipo.get(tipo, 'almuerzo.jpg')}"
+
+
 SECTION_META = {
-    'desayuno': {'label': 'Desayuno', 'icon': '☕'},
-    'brunch': {'label': 'Brunch & Once', 'icon': '🥐'},
-    'almuerzo': {'label': 'Almuerzo', 'icon': '🍽️'},
-    'cena': {'label': 'Cena', 'icon': '🌙'},
-    'terraza': {'label': 'Terraza', 'icon': '🌿'},
-    'vinos': {'label': 'Vinos', 'icon': '🍷'},
-    'licores': {'label': 'Licores', 'icon': '🥃'},
-    'cocteles': {'label': 'Cocteles', 'icon': '🍸'},
-    'catering': {'label': 'Catering', 'icon': '🎉'},
+    'desayuno': {'label': 'Desayuno', 'icon': 'D'},
+    'brunch': {'label': 'Brunch & Once', 'icon': 'B'},
+    'almuerzo': {'label': 'Almuerzo', 'icon': 'A'},
+    'postres': {'label': 'Postres', 'icon': 'P'},
+    'infantil': {'label': 'Infantil Dia', 'icon': 'I'},
+    'te_cafe': {'label': 'Te - Cafe', 'icon': 'TC'},
+    'bebidas': {'label': 'Bebidas y Cervezas', 'icon': 'BB'},
+    'llevar': {'label': 'Para Llevar', 'icon': 'PL'},
+    'cena': {'label': 'Cena', 'icon': 'C'},
+    'terraza': {'label': 'Terraza', 'icon': 'T'},
+    'vinos': {'label': 'Vinos', 'icon': 'V'},
+    'licores': {'label': 'Licores', 'icon': 'L'},
+    'cocteles': {'label': 'Cocteles', 'icon': 'Co'},
+    'catering': {'label': 'Catering', 'icon': 'E'},
+}
+
+SECTION_IMAGE_FALLBACKS = {
+    'desayuno': _local_menu_fallback('desayuno'),
+    'brunch': _local_menu_fallback('brunch'),
+    'almuerzo': _local_menu_fallback('almuerzo'),
+    'postres': _local_menu_fallback('postres'),
+    'infantil': _local_menu_fallback('infantil'),
+    'te_cafe': _local_menu_fallback('te_cafe'),
+    'bebidas': _local_menu_fallback('bebidas'),
+    'llevar': _local_menu_fallback('llevar'),
+    'cena': _local_menu_fallback('cena'),
+    'terraza': _local_menu_fallback('terraza'),
+    'vinos': _local_menu_fallback('vinos'),
+    'licores': _local_menu_fallback('licores'),
+    'cocteles': _local_menu_fallback('cocteles'),
+    'catering': _local_menu_fallback('catering'),
 }
 
 
@@ -41,12 +84,6 @@ SAMPLE_MENU = {
                     'precio': 7900,
                     'display_image_url': 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=900&q=80',
                 },
-                {
-                    'nombre': 'Bowl de frutas y granola',
-                    'descripcion': 'Yogurt natural, frutas frescas de temporada, miel y granola tostada.',
-                    'precio': 6200,
-                    'display_image_url': 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=900&q=80',
-                },
             ],
         },
     ],
@@ -66,12 +103,6 @@ SAMPLE_MENU = {
                     'descripcion': 'Pan brioche, frutas del bosque, crema chantilly y syrup de maple.',
                     'precio': 8400,
                     'display_image_url': 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=900&q=80',
-                },
-                {
-                    'nombre': 'Tabla Brunch Boccato',
-                    'descripcion': 'Mini quiches, quesos suaves, charcuteria, frutas y pan de masa madre.',
-                    'precio': 14900,
-                    'display_image_url': 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=900&q=80',
                 },
             ],
         },
@@ -96,11 +127,159 @@ SAMPLE_MENU = {
                     'tiene_oferta': True,
                     'descuento_porcentaje': 8,
                 },
+            ],
+        },
+    ],
+    'postres': [
+        {
+            'categoria': {'nombre': 'Postres de la Casa', 'descripcion': 'Dulces artesanales y vitrina diaria'},
+            'items': [
                 {
-                    'nombre': 'Salmon grillado',
-                    'descripcion': 'Pure de coliflor, verduras al horno y salsa de limon.',
-                    'precio': 17600,
-                    'display_image_url': 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&q=80',
+                    'nombre': 'Tiramisu Boccato',
+                    'descripcion': 'Crema de mascarpone, bizcocho de cafe y cacao amargo.',
+                    'precio': 6200,
+                    'destacado': True,
+                    'display_image_url': 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=900&q=80',
+                },
+                {
+                    'nombre': 'Cheesecake de frutos rojos',
+                    'descripcion': 'Base crocante, queso crema y salsa de berries.',
+                    'precio': 5900,
+                    'display_image_url': 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=900&q=80',
+                },
+            ],
+        },
+    ],
+    'infantil': [
+        {
+            'categoria': {'nombre': 'Menu Infantil de Dia', 'descripcion': 'Disponible hasta las 18:00 hrs'},
+            'items': [
+                {
+                    'nombre': 'Mini pasta pomodoro',
+                    'descripcion': 'Pasta corta con salsa de tomate suave y queso rallado.',
+                    'precio': 5900,
+                    'display_image_url': 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=900&q=80',
+                },
+                {
+                    'nombre': 'Pollo crispy con papas',
+                    'descripcion': 'Tiras de pollo apanado, papas rusticas y jugo pequeno.',
+                    'precio': 6900,
+                    'destacado': True,
+                    'display_image_url': 'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=900&q=80',
+                },
+            ],
+        },
+    ],
+    'te_cafe': [
+        {
+            'categoria': {'nombre': 'Cafe, Te e Infusiones', 'descripcion': 'Servicio de cafeteria, hierbas y teteras'},
+            'items': [
+                {
+                    'nombre': 'Espresso Boccato',
+                    'descripcion': 'Cafe de especialidad de tueste medio servido corto.',
+                    'precio': 2800,
+                    'destacado': True,
+                    'display_image_url': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=900&q=80',
+                },
+                {
+                    'nombre': 'Cappuccino de la casa',
+                    'descripcion': 'Leche texturizada, espresso doble y cacao suave.',
+                    'precio': 3900,
+                    'display_image_url': 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=900&q=80',
+                },
+                {
+                    'nombre': 'Te premium en tetera',
+                    'descripcion': 'Seleccion Earl Grey, chai, jazmin o frutos rojos.',
+                    'precio': 3600,
+                    'display_image_url': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=900&q=80',
+                },
+                {
+                    'nombre': 'Infusion de hierbas del huerto',
+                    'descripcion': 'Menta, cedron, manzanilla y jengibre segun disponibilidad.',
+                    'precio': 3400,
+                    'display_image_url': 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=900&q=80',
+                },
+            ],
+        },
+    ],
+    'bebidas': [
+        {
+            'categoria': {'nombre': 'Jugos, Sodas y Cervezas', 'descripcion': 'Bebidas frias, cervezas y especialidades sin alcohol'},
+            'items': [
+                {
+                    'nombre': 'Jugo natural del dia',
+                    'descripcion': 'Preparado al momento con fruta fresca de temporada.',
+                    'precio': 4200,
+                    'display_image_url': 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=900&q=80',
+                },
+                {
+                    'nombre': 'Soda Boccato citrus',
+                    'descripcion': 'Receta propia con limon, romero, miel y agua gasificada.',
+                    'precio': 4300,
+                    'destacado': True,
+                    'display_image_url': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=900&q=80',
+                },
+                {
+                    'nombre': 'Shop lager artesanal',
+                    'descripcion': 'Formato shop bien frio con espuma cremosa.',
+                    'precio': 4900,
+                    'display_image_url': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=900&q=80',
+                },
+                {
+                    'nombre': 'Cerveza artesanal botella',
+                    'descripcion': 'IPA, amber ale o stout de productores locales.',
+                    'precio': 5400,
+                    'display_image_url': 'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=900&q=80',
+                },
+                {
+                    'nombre': 'Bebida de fantasia',
+                    'descripcion': 'Linea clasica, zero o ginger ale.',
+                    'precio': 2600,
+                    'display_image_url': 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=900&q=80',
+                },
+            ],
+        },
+    ],
+    'llevar': [
+        {
+            'categoria': {'nombre': 'Accesorios y Gourmet Boccato', 'descripcion': 'Productos para llevar, regalos y linea propia'},
+            'items': [
+                {
+                    'nombre': 'Caja termica premium',
+                    'descripcion': 'Caja rigida para despacho o picnic gourmet.',
+                    'precio': 14900,
+                    'display_image_url': '',
+                },
+                {
+                    'nombre': 'Set cubiertos biodegradables',
+                    'descripcion': 'Tenedor, cuchara, cuchillo de corte y servilleta.',
+                    'precio': 1800,
+                    'display_image_url': '',
+                },
+                {
+                    'nombre': 'Chimichurri Boccato',
+                    'descripcion': 'Receta propia en frasco para carnes y vegetales.',
+                    'precio': 5200,
+                    'display_image_url': '',
+                },
+                {
+                    'nombre': 'Sal de mar Boccato gourmet',
+                    'descripcion': 'Blend de sales con hierbas y citricos.',
+                    'precio': 4600,
+                    'display_image_url': '',
+                },
+                {
+                    'nombre': 'Tabla de corte Boccato',
+                    'descripcion': 'Tabla de madera para servicio, asado o regalo.',
+                    'precio': 18900,
+                    'display_image_url': '',
+                },
+                {
+                    'nombre': 'Tarjeta VIP Terraza y Show',
+                    'descripcion': 'Beneficio de 20% de descuento en terraza y show en vivo.',
+                    'precio': 25000,
+                    'destacado': True,
+                    'display_image_url': '',
                 },
             ],
         },
@@ -116,18 +295,6 @@ SAMPLE_MENU = {
                     'destacado': True,
                     'display_image_url': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=900&q=80',
                 },
-                {
-                    'nombre': 'Ravioles de ricotta y espinaca',
-                    'descripcion': 'Masa fresca, salsa pomodoro asada y albahaca.',
-                    'precio': 14900,
-                    'display_image_url': 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=900&q=80',
-                },
-                {
-                    'nombre': 'Merluza austral confitada',
-                    'descripcion': 'Cuscus de verduras y mantequilla blanca al cilantro.',
-                    'precio': 16900,
-                    'display_image_url': 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&q=80',
-                },
             ],
         },
     ],
@@ -141,18 +308,6 @@ SAMPLE_MENU = {
                     'precio': 15900,
                     'destacado': True,
                     'display_image_url': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=900&q=80',
-                },
-                {
-                    'nombre': 'Bruschettas surtidas',
-                    'descripcion': 'Tomate confitado, pesto, stracciatella y jamon serrano.',
-                    'precio': 7900,
-                    'display_image_url': 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=900&q=80',
-                },
-                {
-                    'nombre': 'Empanaditas gourmet',
-                    'descripcion': 'Mix de plateada al vino, queso azul con cebolla y pino suave.',
-                    'precio': 7200,
-                    'display_image_url': 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=900&q=80',
                 },
             ],
         },
@@ -171,26 +326,6 @@ SAMPLE_MENU = {
                     'origen': 'Valle del Maipo',
                     'display_image_url': 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900&q=80',
                 },
-                {
-                    'nombre': 'Sauvignon Blanc',
-                    'descripcion': 'Notas citricas, mineralidad y final fresco.',
-                    'precio': 14900,
-                    'bodega': 'Casa Costa',
-                    'cepa': 'Sauvignon Blanc',
-                    'anno': '2023',
-                    'origen': 'Casablanca',
-                    'display_image_url': 'https://images.unsplash.com/photo-1562601579-599dec564e06?w=900&q=80',
-                },
-                {
-                    'nombre': 'Rose Brut',
-                    'descripcion': 'Espumante seco para aperitivo o brunch.',
-                    'precio': 18900,
-                    'bodega': 'Valle Espumante',
-                    'cepa': 'Blend',
-                    'anno': '2023',
-                    'origen': 'Limari',
-                    'display_image_url': 'https://images.unsplash.com/photo-1558008258-3256797b43f3?w=900&q=80',
-                },
             ],
         },
     ],
@@ -206,22 +341,6 @@ SAMPLE_MENU = {
                     'graduacion': '40%',
                     'display_image_url': 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=900&q=80',
                 },
-                {
-                    'nombre': 'Pisco reservado',
-                    'descripcion': 'Servicio clasico para degustacion o sour premium.',
-                    'precio': 6900,
-                    'bodega': 'Mistral',
-                    'graduacion': '35%',
-                    'display_image_url': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=900&q=80',
-                },
-                {
-                    'nombre': 'Gin botanico',
-                    'descripcion': 'Perfume herbal y citrico, ideal para gin tonic.',
-                    'precio': 7900,
-                    'bodega': 'Botanic London',
-                    'graduacion': '40%',
-                    'display_image_url': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=900&q=80',
-                },
             ],
         },
     ],
@@ -235,18 +354,6 @@ SAMPLE_MENU = {
                     'precio': 6900,
                     'destacado': True,
                     'display_image_url': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=900&q=80',
-                },
-                {
-                    'nombre': 'Aperol Spritz',
-                    'descripcion': 'Aperol, espumante, soda y rodaja de naranja.',
-                    'precio': 7200,
-                    'display_image_url': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=900&q=80',
-                },
-                {
-                    'nombre': 'Negroni Boccato',
-                    'descripcion': 'Gin, vermut rosso, campari y piel de naranja.',
-                    'precio': 7900,
-                    'display_image_url': 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=900&q=80',
                 },
             ],
         },
@@ -263,31 +370,29 @@ SAMPLE_MENU = {
                     'min_personas': 10,
                     'display_image_url': 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=900&q=80',
                 },
-                {
-                    'nombre': 'Brunch Corporativo',
-                    'descripcion': 'Buffet frio, huevos, frutas, bolleria y espumante sin alcohol.',
-                    'precio': 16900,
-                    'precio_persona': 16900,
-                    'min_personas': 12,
-                    'display_image_url': 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=900&q=80',
-                },
-                {
-                    'nombre': 'Cocktail Premium',
-                    'descripcion': 'Canapes, bocados calientes, barra y personal de servicio.',
-                    'precio': 24900,
-                    'precio_persona': 24900,
-                    'min_personas': 20,
-                    'display_image_url': 'https://images.unsplash.com/photo-1519167758481-83f29c2117e0?w=900&q=80',
-                },
             ],
         },
     ],
 }
 
 
-def _normalize_item(item):
+def _resolve_item_image(item, fallback_tipo=''):
     is_dict = isinstance(item, dict)
-    display_image_url = getattr(item, 'display_image_url', '') if not is_dict else item.get('display_image_url', '')
+    if is_dict:
+        return SECTION_IMAGE_FALLBACKS.get(fallback_tipo, '') or item.get('display_image_url') or item.get('external_image_url', '')
+
+    image_url = getattr(item, 'display_image_url', '') or getattr(item, 'external_image_url', '')
+    if image_url:
+        return image_url
+
+    categoria = getattr(item, 'categoria', None)
+    tipo = fallback_tipo or getattr(categoria, 'tipo', '')
+    return SECTION_IMAGE_FALLBACKS.get(tipo, '')
+
+
+def _normalize_item(item, fallback_tipo=''):
+    is_dict = isinstance(item, dict)
+    display_image_url = _resolve_item_image(item, fallback_tipo=fallback_tipo)
     normalized = {
         'nombre': getattr(item, 'nombre', '') if not is_dict else item.get('nombre', ''),
         'descripcion': getattr(item, 'descripcion', '') if not is_dict else item.get('descripcion', ''),
@@ -299,9 +404,9 @@ def _normalize_item(item):
         'origen': getattr(item, 'origen', '') if not is_dict else item.get('origen', ''),
         'graduacion': getattr(item, 'graduacion', '') if not is_dict else item.get('graduacion', ''),
         'display_image_url': display_image_url,
-        'precio_oferta': item.get('precio_oferta', None) if is_dict else None,
-        'tiene_oferta': item.get('tiene_oferta', False) if is_dict else False,
-        'descuento_porcentaje': item.get('descuento_porcentaje', 0) if is_dict else 0,
+        'precio_oferta': item.get('precio_oferta', None) if is_dict else getattr(item, 'precio_oferta', None),
+        'tiene_oferta': item.get('tiene_oferta', False) if is_dict else getattr(item, 'tiene_oferta', False),
+        'descuento_porcentaje': item.get('descuento_porcentaje', 0) if is_dict else getattr(item, 'descuento_porcentaje', 0),
         'precio_persona': item.get('precio_persona', None) if is_dict else None,
         'min_personas': item.get('min_personas', None) if is_dict else None,
     }
@@ -311,35 +416,37 @@ def _normalize_item(item):
 
 
 def _db_categories_for(tipo):
-    try:
-        categorias = CategoriaMenu.objects.filter(tipo=tipo, activa=True).prefetch_related('items')
-        categories_with_items = []
-        for categoria in categorias:
-            normalized_items = [_normalize_item(item) for item in categoria.items.filter(disponible=True)]
-            if normalized_items:
-                categories_with_items.append({'categoria': categoria, 'items': normalized_items})
-        return categories_with_items
-    except Exception:
-        return []
+    categorias = CategoriaMenu.objects.filter(tipo=tipo, activa=True).prefetch_related('items')
+    categories_with_items = []
+    for categoria in categorias:
+        normalized_items = [_normalize_item(item, fallback_tipo=tipo) for item in categoria.items.filter(disponible=True)]
+        if normalized_items:
+            categories_with_items.append({'categoria': categoria, 'items': normalized_items})
+    return categories_with_items
 
 
-def _sample_categories_for(tipo):
-    return SAMPLE_MENU.get(tipo, [])
+def _has_real_menu_data():
+    return CategoriaMenu.objects.filter(activa=True, items__isnull=False).exists()
 
 
 def _categories_for_tipo(tipo):
-    return _db_categories_for(tipo) or _sample_categories_for(tipo)
+    db_categories = _db_categories_for(tipo)
+    if db_categories:
+        return db_categories
+    if _has_real_menu_data():
+        return []
+    return SAMPLE_MENU.get(tipo, [])
 
 
 def _menu_sections():
     sections = []
-    for tipo in SECTION_META:
+    for tipo, meta in SECTION_META.items():
         categorias = _categories_for_tipo(tipo)
         item_count = sum(len(categoria['items']) for categoria in categorias)
         sections.append({
             'tipo': tipo,
-            'label': SECTION_META[tipo]['label'],
-            'icon': SECTION_META[tipo]['icon'],
+            'label': meta['label'],
+            'icon': meta['icon'],
             'count': item_count,
         })
     return sections
@@ -406,8 +513,7 @@ def carta_completa(request):
 
 def _carta_tipo(request, tipo):
     categorias = _categories_for_tipo(tipo)
-    template = f'menu/secciones/{tipo}.html'
-    return render(request, template, {
+    return render(request, f'menu/secciones/{tipo}.html', {
         'categorias': categorias,
         'tipo': tipo,
         'tipo_label': SECTION_META[tipo]['label'],
@@ -424,6 +530,26 @@ def carta_brunch(request):
 
 def carta_almuerzo(request):
     return _carta_tipo(request, 'almuerzo')
+
+
+def carta_postres(request):
+    return _carta_tipo(request, 'postres')
+
+
+def carta_infantil(request):
+    return _carta_tipo(request, 'infantil')
+
+
+def carta_te_cafe(request):
+    return _carta_tipo(request, 'te_cafe')
+
+
+def carta_bebidas(request):
+    return _carta_tipo(request, 'bebidas')
+
+
+def carta_llevar(request):
+    return _carta_tipo(request, 'llevar')
 
 
 def carta_cena(request):
@@ -459,19 +585,25 @@ def panel_menu(request):
             'categorias': CategoriaMenu.objects.filter(tipo=tipo).count(),
             'items': ItemMenu.objects.filter(categoria__tipo=tipo).count(),
             'disponibles': ItemMenu.objects.filter(categoria__tipo=tipo, disponible=True).count(),
+            'ofertas': ItemMenu.objects.filter(categoria__tipo=tipo, tiene_oferta=True).count(),
         }
-    return render(request, 'catalog/panel/dashboard.html', {'stats': stats})
+    return render(request, 'menu/panel/dashboard.html', {'stats': stats})
 
 
 @staff_member_required
 def panel_items(request):
     tipo = request.GET.get('tipo', '')
     q = request.GET.get('q', '')
-    items = ItemMenu.objects.select_related('categoria').all()
+    items = ItemMenu.objects.select_related('categoria').all().order_by('categoria__tipo', 'categoria__nombre', 'nombre')
     if tipo:
         items = items.filter(categoria__tipo=tipo)
     if q:
-        items = items.filter(nombre__icontains=q)
+        items = items.filter(
+            Q(nombre__icontains=q) |
+            Q(descripcion__icontains=q) |
+            Q(categoria__nombre__icontains=q) |
+            Q(categoria__tipo__icontains=q)
+        )
     return render(request, 'menu/panel/items.html', {
         'items': items,
         'tipo_sel': tipo,
@@ -534,6 +666,21 @@ def panel_categoria_crear(request):
         messages.success(request, f'Categoria "{categoria.nombre}" creada.')
         return redirect('menu:panel_categorias')
     return render(request, 'menu/panel/categoria_form.html', {'form': form, 'titulo': 'Nueva Categoria'})
+
+
+@staff_member_required
+def panel_categoria_editar(request, pk):
+    categoria = get_object_or_404(CategoriaMenu, pk=pk)
+    form = CategoriaMenuForm(request.POST or None, instance=categoria)
+    if form.is_valid():
+        categoria = form.save()
+        messages.success(request, f'Categoria "{categoria.nombre}" actualizada.')
+        return redirect('menu:panel_categorias')
+    return render(request, 'menu/panel/categoria_form.html', {
+        'form': form,
+        'titulo': f'Editar Categoria: {categoria.nombre}',
+        'categoria': categoria,
+    })
 
 
 @staff_member_required

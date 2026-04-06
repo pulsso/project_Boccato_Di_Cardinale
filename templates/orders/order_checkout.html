@@ -42,6 +42,28 @@
       {% csrf_token %}
       <div class="row g-3">
         <div class="col-md-6">
+          <label class="form-label" for="customer_first_name">Nombre</label>
+          <input class="form-control" id="customer_first_name" name="customer_first_name" value="{{ customer_first_name|default:'' }}" placeholder="Nombre del cliente">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="customer_last_name">Apellidos</label>
+          <input class="form-control" id="customer_last_name" name="customer_last_name" value="{{ customer_last_name|default:'' }}" placeholder="Apellidos del cliente">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="customer_email">Email</label>
+          <input class="form-control" id="customer_email" name="customer_email" type="email" value="{{ customer_email|default:'' }}" placeholder="cliente@email.com">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="customer_mobile_phone">Celular</label>
+          <input class="form-control" id="customer_mobile_phone" name="customer_mobile_phone" value="{{ customer_mobile_phone|default:'' }}" placeholder="+56 9 ...">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="customer_landline_phone">Telefono fijo</label>
+          <input class="form-control" id="customer_landline_phone" name="customer_landline_phone" value="{{ customer_landline_phone|default:'' }}" placeholder="Opcional">
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
           <label class="form-label" for="zone">Zona</label>
           <select class="form-select" id="zone" name="zone">
             <option value="" {% if not zone %}selected{% endif %}>Selecciona una zona</option>
@@ -219,7 +241,7 @@
     const form = document.getElementById('checkout-form');
     if (form && form.dataset.freshCheckout === 'true') {
       window.addEventListener('pageshow', function() {
-        ['shipping_address', 'notes', 'delivery_distance_km', 'destination_latitude', 'destination_longitude'].forEach((fieldId) => {
+        ['customer_first_name', 'customer_last_name', 'customer_email', 'customer_mobile_phone', 'customer_landline_phone', 'shipping_address', 'notes', 'delivery_distance_km', 'destination_latitude', 'destination_longitude'].forEach((fieldId) => {
           const field = document.getElementById(fieldId);
           if (field) {
             field.value = '';

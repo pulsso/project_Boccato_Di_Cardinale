@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Platos de Carta | Boccato{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="fw-bold mb-1">Platos y Productos de Carta</h2>
+    <p class="text-muted mb-0">Carga imagenes, cambia precios y activa ofertas por plato.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'menu:panel_menu' %}">Volver al panel</a>
+    <a class="btn btn-primary" href="{% url 'menu:panel_item_crear' %}">Nuevo plato</a>
+  </div>
+</div>
+
+<form method="get" class="card p-3 mb-4">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Tipo de carta</label>
+      <select class="form-select" name="tipo">
+        <option value="">Todas</option>
+        {% for value, label in tipo_choices %}
+        <option value="{{ value }}" {% if tipo_sel == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-5">
+      <label class="form-label">Buscar</label>
+      <input class="form-control" type="text" name="q" value="{{ q }}" placeholder="Nombre, descripcion, categoria o tipo">
+    </div>
+    <div class="col-md-3">
+      <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+    </div>
+  </div>
+</form>
+
+<div class="card p-0 overflow-hidden">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>Imagen</th>
+          <th>Plato</th>
+          <th>Categoria</th>
+          <th>Precio</th>
+          <th>Oferta</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="width:88px;">
+            {% if item.display_image_url %}
+            <img src="{{ item.display_image_url }}" alt="{{ item.nombre }}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;">
+            {% else %}
+            <div style="width:64px;height:64px;border:1px dashed rgba(212,175,55,0.22);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--bc-muted);">Sin foto</div>
+            {% endif %}
+          </td>
+          <td>
+            <strong>{{ item.nombre }}</strong>
+            {% if item.descripcion %}<div class="small text-muted">{{ item.descripcion|truncatechars:90 }}</div>{% endif %}
+          </td>
+          <td>{{ item.categoria.nombre }}</td>
+          <td>${{ item.precio|floatformat:0 }}</td>
+          <td>
+            {% if item.tiene_oferta and item.precio_oferta %}
+            <span class="badge bg-danger">${{ item.precio_oferta|floatformat:0 }}</span>
+            {% else %}
+            <span class="text-muted">Sin oferta</span>
+            {% endif %}
+          </td>
+          <td>{% if item.disponible %}Disponible{% else %}No disponible{% endif %}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'menu:panel_item_editar' item.pk %}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'menu:panel_item_eliminar' item.pk %}">Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-4">No hay platos cargados con ese filtro.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -12,12 +12,12 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'user', 'zone', 'sector', 'status', 'paid', 'delivery_method',
+        'id', 'user', 'customer_email', 'zone', 'sector', 'status', 'paid', 'delivery_method',
         'estimated_delivery_minutes', 'get_total', 'created_at',
     ]
     list_filter = ['status', 'paid', 'delivery_method', 'zone', 'sector']
     list_editable = ['status', 'paid']
-    search_fields = ['user__username', 'user__email']
+    search_fields = ['user__username', 'user__email', 'customer_email', 'customer_first_name', 'customer_last_name']
     inlines = [OrderItemInline]
     readonly_fields = ['created_at', 'updated_at']
 
@@ -31,6 +31,6 @@ class DispatchTaskAdmin(admin.ModelAdmin):
 
 @admin.register(OrderNotification)
 class OrderNotificationAdmin(admin.ModelAdmin):
-    list_display = ['order', 'recipient_type', 'channel', 'recipient_email', 'created_at']
-    list_filter = ['recipient_type', 'channel']
-    search_fields = ['order__id', 'subject', 'message']
+    list_display = ['order', 'recipient_type', 'channel', 'status', 'recipient_email', 'recipient_phone', 'created_at']
+    list_filter = ['recipient_type', 'channel', 'status']
+    search_fields = ['order__id', 'subject', 'message', 'recipient_email', 'recipient_phone']

@@ -1,4 +1,5 @@
 from decimal import Decimal
+import re
 from django.conf import settings
 
 from django.contrib import messages
@@ -51,6 +52,11 @@ def require_dispatch(view_func):
 
 
 def _checkout_context(cart, items, profile=None, form_data=None, fresh_checkout=False):
+    customer_first_name = ''
+    customer_last_name = ''
+    customer_email = ''
+    customer_mobile_phone = ''
+    customer_landline_phone = ''
     zone = ''
     sector = ''
     shipping_address = ''
@@ -59,11 +65,19 @@ def _checkout_context(cart, items, profile=None, form_data=None, fresh_checkout=
     delivery_distance_km = ''
     destination_latitude = ''
     destination_longitude = ''
+    if profile:
+        customer_mobile_phone = profile.mobile_phone
+        customer_landline_phone = profile.landline_phone
     if profile and form_data:
         zone = profile.zone
         sector = profile.sector
         shipping_address = profile.default_address
     if form_data:
+        customer_first_name = form_data.get('customer_first_name', customer_first_name)
+        customer_last_name = form_data.get('customer_last_name', customer_last_name)
+        customer_email = form_data.get('customer_email', customer_email)
+        customer_mobile_phone = form_data.get('customer_mobile_phone', customer_mobile_phone)
+        customer_landline_phone = form_data.get('customer_landline_phone', customer_landline_phone)
         zone = form_data.get('zone', zone)
         sector = form_data.get('sector', sector)
         shipping_address = form_data.get('shipping_address', shipping_address)
@@ -95,6 +109,11 @@ def _checkout_context(cart, items, profile=None, form_data=None, fresh_checkout=
         'cart': cart,
         'items': items,
         'minimum_order': MIN_ORDER_TOTAL,
+        'customer_first_name': customer_first_name or getattr(profile.user, 'first_name', '') if profile else customer_first_name,
+        'customer_last_name': customer_last_name or getattr(profile.user, 'last_name', '') if profile else customer_last_name,
+        'customer_email': customer_email or getattr(profile.user, 'email', '') if profile else customer_email,
+        'customer_mobile_phone': customer_mobile_phone,
+        'customer_landline_phone': customer_landline_phone,
         'zone_choices': ZONE_CHOICES,
         'sector_choices': SECTOR_CHOICES,
         'zone': zone,
@@ -144,6 +163,11 @@ def order_create(request):
 
     shipping_address = sanitize_untrusted_text(request.POST.get('shipping_address', ''), max_length=500)
     notes = sanitize_untrusted_text(request.POST.get('notes', ''), max_length=500)
+    customer_first_name = sanitize_untrusted_text(request.POST.get('customer_first_name', ''), max_length=150)
+    customer_last_name = sanitize_untrusted_text(request.POST.get('customer_last_name', ''), max_length=150)
+    customer_email = sanitize_untrusted_text(request.POST.get('customer_email', ''), max_length=254)
+    customer_mobile_phone = sanitize_untrusted_text(request.POST.get('customer_mobile_phone', ''), max_length=20)
+    customer_landline_phone = sanitize_untrusted_text(request.POST.get('customer_landline_phone', ''), max_length=20)
     zone = request.POST.get('zone', '').strip()
     sector = request.POST.get('sector', '').strip()
     delivery_method = request.POST.get('delivery_method', 'internal').strip()
@@ -165,6 +189,11 @@ def order_create(request):
         destination_longitude = None
 
     form_data = {
+        'customer_first_name': customer_first_name,
+        'customer_last_name': customer_last_name,
+        'customer_email': customer_email,
+        'customer_mobile_phone': customer_mobile_phone,
+        'customer_landline_phone': customer_landline_phone,
         'zone': zone,
         'sector': sector,
         'shipping_address': shipping_address,
@@ -174,6 +203,22 @@ def order_create(request):
         'destination_latitude': destination_latitude_raw,
         'destination_longitude': destination_longitude_raw,
     }
+
+    if not customer_first_name or not customer_last_name:
+        messages.error(request, 'Debes ingresar nombre y apellidos del cliente.')
+        return render(request, 'orders/order_checkout.html', _checkout_context(cart, items, profile=profile, form_data=form_data))
+
+    if not customer_email or '@' not in customer_email:
+        messages.error(request, 'Debes ingresar un email valido del cliente.')
+        return render(request, 'orders/order_checkout.html', _checkout_context(cart, items, profile=profile, form_data=form_data))
+
+    phone_pattern = re.compile(r'^[0-9+\-\s()]{8,20}$')
+    if not customer_mobile_phone or not phone_pattern.match(customer_mobile_phone):
+        messages.error(request, 'Debes ingresar un celular valido del cliente.')
+        return render(request, 'orders/order_checkout.html', _checkout_context(cart, items, profile=profile, form_data=form_data))
+    if customer_landline_phone and not phone_pattern.match(customer_landline_phone):
+        messages.error(request, 'El telefono fijo ingresado no es valido.')
+        return render(request, 'orders/order_checkout.html', _checkout_context(cart, items, profile=profile, form_data=form_data))
 
     if not shipping_address:
         messages.error(request, 'Debes ingresar una direccion de entrega.')
@@ -205,6 +250,11 @@ def order_create(request):
     with transaction.atomic():
         order = Order.objects.create(
             user=request.user,
+            customer_first_name=customer_first_name,
+            customer_last_name=customer_last_name,
+            customer_email=customer_email,
+            customer_mobile_phone=customer_mobile_phone,
+            customer_landline_phone=customer_landline_phone,
             shipping_address=shipping_address,
             notes=notes,
             zone=zone,
@@ -228,6 +278,8 @@ def order_create(request):
         profile.zone = zone
         profile.sector = sector
         profile.default_address = shipping_address
+        profile.mobile_phone = customer_mobile_phone
+        profile.landline_phone = customer_landline_phone
         profile.save()
 
     cart.clear()

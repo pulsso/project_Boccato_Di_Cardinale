@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Comanda {{ comanda.folio }} | Boccato{% endblock %}
+
+{% block content %}
+<style>
+  .cmd-page { display:grid; gap:24px; }
+  .cmd-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap; }
+  .cmd-head h1 { margin:0; font-family:var(--bc-serif); color:var(--bc-cream); font-size:30px; }
+  .cmd-mini { color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; }
+  .cmd-actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .cmd-btn { display:inline-flex; align-items:center; justify-content:center; padding:10px 16px; border-radius:4px; text-decoration:none; font-family:var(--bc-sans); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; }
+  .cmd-btn-outline { color:var(--bc-gold); border:1px solid rgba(212,175,55,0.3); }
+  .cmd-btn-primary { background:var(--bc-gold); color:var(--bc-bg); border:none; }
+  .cmd-btn-danger { color:#fca5a5; border:1px solid rgba(239,68,68,0.3); background:transparent; }
+  .cmd-btn-warning { color:#fcd34d; border:1px solid rgba(250,204,21,0.35); background:transparent; }
+  .cmd-layout { display:grid; grid-template-columns:1.2fr .8fr; gap:24px; align-items:start; }
+  @media (max-width: 1080px) { .cmd-layout { grid-template-columns:1fr; } }
+  .cmd-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:24px; }
+  .cmd-title { margin:0 0 14px; font-family:var(--bc-serif); font-size:24px; color:var(--bc-cream); }
+  .cmd-consumo-list { display:grid; gap:14px; }
+  .cmd-consumo-item { display:grid; grid-template-columns:1fr auto; gap:14px; padding:14px 0; border-bottom:1px solid rgba(212,175,55,0.08); }
+  .cmd-consumo-item:last-child { border-bottom:none; }
+  .cmd-item-name { color:var(--bc-cream); font-family:var(--bc-sans); font-size:15px; }
+  .cmd-item-total { color:var(--bc-gold); font-family:var(--bc-serif); font-size:18px; text-align:right; }
+  .cmd-summary-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; }
+  .cmd-summary-row span:first-child { color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; }
+  .cmd-summary-row span:last-child { color:var(--bc-cream); font-family:var(--bc-serif); font-size:16px; }
+  .cmd-total { margin-top:12px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.14); display:flex; justify-content:space-between; align-items:center; }
+  .cmd-total span:first-child { color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; text-transform:uppercase; letter-spacing:1.5px; }
+  .cmd-total span:last-child { color:var(--bc-gold); font-family:var(--bc-serif); font-size:26px; }
+  .cmd-catalog-card { background:var(--bc-surface); border:1px solid rgba(212,175,55,0.12); border-radius:6px; padding:24px; }
+  .cmd-catalog-head { display:flex; justify-content:space-between; align-items:flex-end; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+  .cmd-catalog-grid { display:grid; gap:18px; }
+  .cmd-quick-nav { position:sticky; top:82px; z-index:4; display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; padding:12px; border:1px solid rgba(212,175,55,0.12); border-radius:6px; background:rgba(10,8,6,0.92); backdrop-filter:blur(10px); }
+  .cmd-quick-link { display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:999px; text-decoration:none; border:1px solid rgba(212,175,55,0.22); color:var(--bc-gold); font-family:var(--bc-sans); font-size:10px; letter-spacing:1px; text-transform:uppercase; }
+  .cmd-quick-link:hover { background:var(--bc-gold-glow); color:var(--bc-gold); }
+  .cmd-category { display:grid; gap:12px; }
+  .cmd-category-title { margin:0; color:var(--bc-gold); font-family:var(--bc-sans); font-size:11px; letter-spacing:2px; text-transform:uppercase; }
+  .cmd-products { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; }
+  .cmd-product { display:grid; gap:12px; border:1px solid rgba(212,175,55,0.12); border-radius:8px; padding:14px; background:rgba(212,175,55,0.03); align-content:start; }
+  .cmd-product-media { aspect-ratio: 16/7; border-radius:6px; overflow:hidden; background:rgba(255,255,255,0.03); }
+  .cmd-product-media img { width:100%; height:100%; object-fit:cover; display:block; }
+  .cmd-product-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  .cmd-product-title { color:var(--bc-cream); font-family:var(--bc-sans); font-size:15px; }
+  .cmd-product-price { color:var(--bc-gold); font-family:var(--bc-serif); font-size:20px; white-space:nowrap; }
+  .cmd-product-desc { color:var(--bc-muted); font-family:var(--bc-sans); font-size:12px; min-height:34px; }
+  .cmd-touch-row { display:grid; grid-template-columns:100px 1fr auto; gap:10px; align-items:end; }
+  .cmd-touch-controls { display:flex; align-items:center; gap:6px; }
+  .cmd-touch-btn { width:34px; height:34px; border-radius:4px; border:1px solid rgba(212,175,55,0.25); background:transparent; color:var(--bc-gold); font-size:18px; line-height:1; }
+  .cmd-touch-input, .cmd-touch-notes { width:100%; background:var(--bc-surface2); color:var(--bc-cream); border:1px solid rgba(212,175,55,0.2); border-radius:4px; padding:9px 10px; font-family:var(--bc-sans); font-size:13px; }
+  .cmd-touch-input { text-align:center; font-size:16px; font-weight:700; color:var(--bc-gold); min-width:42px; }
+  .cmd-touch-input::-webkit-outer-spin-button, .cmd-touch-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .cmd-touch-input[type=number] { -moz-appearance:textfield; appearance:textfield; }
+  .cmd-touch-notes { min-height:42px; resize:vertical; }
+  .cmd-touch-band { display:grid; gap:10px; padding:12px; border:1px solid rgba(212,175,55,0.1); border-radius:6px; background:rgba(0,0,0,0.14); }
+  .cmd-label { color:var(--bc-muted); font-family:var(--bc-sans); font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; display:block; }
+  .cmd-sticky { position:sticky; top:92px; }
+  @media (max-width: 1080px) { .cmd-sticky { position:static; } }
+  .cmd-operator-box { margin-top:18px; padding-top:18px; border-top:1px solid rgba(212,175,55,0.12); display:grid; gap:12px; }
+  .cmd-operator-form { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+  .cmd-operator-form input { background:var(--bc-surface2); color:var(--bc-cream); border:1px solid rgba(212,175,55,0.22); border-radius:4px; padding:9px 10px; min-width:110px; }
+</style>
+
+<div class="cmd-page" id="top">
+  <div class="cmd-head">
+    <div>
+      <div class="cmd-mini">Mesa {{ comanda.mesa.numero }} · {{ comanda.creada_at|date:"d/m/Y H:i" }}</div>
+      <h1>Comanda {{ comanda.folio }}</h1>
+      <div class="cmd-mini">
+        {{ comanda.get_estado_display }} · {{ comanda.num_comensales }} comensal{{ comanda.num_comensales|pluralize:"es" }} · Responsable {{ comanda.garzon.get_full_name|default:comanda.garzon.username }}
+        {% if garzon_profile and garzon_profile.codigo_operador %} · Codigo G{{ garzon_profile.codigo_operador|stringformat:"02d" }}{% endif %}
+      </div>
+    </div>
+    <div class="cmd-actions">
+      <a href="{% url 'comandas:layout_mesas' %}" class="cmd-btn cmd-btn-outline">Mesas</a>
+      {% if can_review_order %}
+      <a href="{% url 'comandas:panel_comandas' %}" class="cmd-btn cmd-btn-outline">Panel</a>
+      {% endif %}
+      <a href="#carta-tactil" class="cmd-btn cmd-btn-primary">Carta tactil</a>
+    </div>
+  </div>
+
+  <div class="cmd-layout">
+    <div class="cmd-card" id="consumo-mesa">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+        <h2 class="cmd-title" style="margin:0;">Consumo de la mesa</h2>
+        <div class="cmd-mini">{{ comanda.items.count }} linea{{ comanda.items.count|pluralize:"s" }} registradas</div>
+      </div>
+      <div class="cmd-consumo-list">
+        {% for item in comanda.items.all %}
+        <div class="cmd-consumo-item">
+          <div>
+            <div class="cmd-item-name">{{ item.nombre_item }} x{{ item.cantidad }}</div>
+            <div class="cmd-mini">Estado: {{ item.get_estado_display }} · Registro {{ item.creado_at|date:"H:i" }}</div>
+            {% if item.notas %}<div class="cmd-mini">Nota cocina: {{ item.notas }}</div>{% endif %}
+            {% if item.preparando_at or item.listo_at or item.entregado_at %}
+            <div class="cmd-mini">
+              {% if item.preparando_at %}Preparando {{ item.preparando_at|date:"H:i" }}{% endif %}
+              {% if item.listo_at %} · Listo {{ item.listo_at|date:"H:i" }}{% endif %}
+              {% if item.entregado_at %} · Entregado {{ item.entregado_at|date:"H:i" }}{% endif %}
+            </div>
+            {% endif %}
+            {% if item.agregado_por %}
+            <div class="cmd-mini">Agregado por {{ item.agregado_por.get_full_name|default:item.agregado_por.username }}</div>
+            {% endif %}
+          </div>
+          <div>
+            <div class="cmd-item-total">${{ item.subtotal|floatformat:0 }}</div>
+            {% if can_edit_order and not pago %}
+            <form method="post" action="{% url 'comandas:comanda_eliminar_item' comanda.id item.id %}" style="margin-top:8px;">
+              {% csrf_token %}
+              <button type="submit" class="cmd-btn cmd-btn-danger" style="padding:7px 12px;">Quitar</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="cmd-mini">Aun no hay productos cargados en esta comanda. Usa la carta tactil para sumar platos, vinos, licores, cafe o postres.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="cmd-card cmd-sticky">
+      <h2 class="cmd-title">Control y cierre</h2>
+      <div class="cmd-summary-row"><span>Subtotal neto</span><span>${{ comanda.get_net_total|floatformat:0 }}</span></div>
+      <div class="cmd-summary-row"><span>IVA 19%</span><span>${{ comanda.get_tax_amount|floatformat:0 }}</span></div>
+      <div class="cmd-summary-row"><span>Propina sugerida para caja</span><span>${{ suggested_tip|floatformat:0 }}</span></div>
+      <div class="cmd-total"><span>Total comanda</span><span>${{ comanda.get_total_with_tax|floatformat:0 }}</span></div>
+
+      <div style="display:grid;gap:10px;margin:18px 0 0;">
+        {% if can_edit_order and comanda.estado != 'cerrada' and comanda.estado != 'cancelada' %}
+        <form method="post" action="{% url 'comandas:comanda_cerrar' comanda.id %}">
+          {% csrf_token %}
+          <button type="submit" class="cmd-btn cmd-btn-primary" style="width:100%;">Cerrar y enviar a pago</button>
+        </form>
+        {% endif %}
+        {% if can_edit_order and comanda.estado == 'cerrada' and not pago %}
+        <form method="post" action="{% url 'comandas:comanda_reabrir' comanda.id %}">
+          {% csrf_token %}
+          <button type="submit" class="cmd-btn cmd-btn-warning" style="width:100%;">Reabrir para sumar consumo</button>
+        </form>
+        {% endif %}
+        {% if comanda.estado == 'cerrada' and not pago %}
+        <a href="{% url 'caja:registrar_pago' comanda.id %}" class="cmd-btn cmd-btn-primary" style="width:100%;">Pasar a caja</a>
+        {% endif %}
+        {% if pago %}
+        <a href="{% url 'caja:recibo' pago.id %}" class="cmd-btn cmd-btn-outline" style="width:100%;">Ver recibo emitido</a>
+        {% endif %}
+        {% if can_edit_order and comanda.estado != 'cancelada' and not pago %}
+        <form method="post" action="{% url 'comandas:comanda_cancelar' comanda.id %}">
+          {% csrf_token %}
+          <button type="submit" class="cmd-btn cmd-btn-danger" style="width:100%;">Cancelar comanda</button>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="cmd-operator-box">
+        <div class="cmd-mini">
+          Operador activo:
+          {% if operator_profile and operator_profile.codigo_operador %}
+            G{{ operator_profile.codigo_operador|stringformat:"02d" }}
+          {% else %}
+            {{ operator_user.get_full_name|default:operator_user.username }}
+          {% endif %}
+        </div>
+        {% if shared_terminal_mode %}
+        <form method="post" action="{% url 'comandas:seleccionar_operador' %}" class="cmd-operator-form">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}#carta-tactil">
+          <div>
+            <label class="cmd-label">Codigo</label>
+            {{ operator_form.codigo_operador }}
+          </div>
+          <div>
+            <label class="cmd-label">PIN</label>
+            {{ operator_form.pin }}
+          </div>
+          <button type="submit" class="cmd-btn cmd-btn-outline" style="padding:10px 14px;">Cambiar</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if can_edit_order and not pago %}
+  <section id="carta-tactil" class="cmd-catalog-card">
+    <div class="cmd-catalog-head">
+      <div>
+        <h2 class="cmd-title" style="margin:0;">Carta tactil completa</h2>
+        <div class="cmd-mini">Selecciona imagen, ajusta cantidad y agrega productos a la misma mesa.</div>
+      </div>
+      <div class="cmd-mini">Los precios ya incluyen IVA.</div>
+    </div>
+
+    <nav class="cmd-quick-nav">
+      <a href="#top" class="cmd-quick-link">Volver arriba</a>
+      {% for bucket in cats_menu %}
+      <a href="#categoria-{{ bucket.categoria.id }}" class="cmd-quick-link">{{ bucket.categoria.nombre }}</a>
+      {% endfor %}
+      <a href="#consumo-mesa" class="cmd-quick-link">Ver consumo</a>
+    </nav>
+
+    <div class="cmd-catalog-grid">
+      {% for bucket in cats_menu %}
+      <section class="cmd-category" id="categoria-{{ bucket.categoria.id }}">
+        <h3 class="cmd-category-title">{{ bucket.categoria.get_tipo_display }} · {{ bucket.categoria.nombre }}</h3>
+        <div class="cmd-products">
+          {% for item in bucket.items %}
+          <form method="post" action="{% url 'comandas:comanda_agregar_item' comanda.id %}" class="cmd-product">
+            {% csrf_token %}
+            <input type="hidden" name="item_id" value="{{ item.id }}">
+            <div class="cmd-product-top">
+              <div>
+                <div class="cmd-product-title">{{ item.nombre }}</div>
+                <div class="cmd-product-desc">{{ item.descripcion|default:"Disponible para agregar a la comanda." }}</div>
+              </div>
+              <div class="cmd-product-price">${% if item.tiene_oferta and item.precio_oferta %}{{ item.precio_oferta|floatformat:0 }}{% else %}{{ item.precio|floatformat:0 }}{% endif %}</div>
+            </div>
+            <div class="cmd-touch-band">
+              <div class="cmd-touch-row">
+                <div>
+                  <label class="cmd-label">Cantidad</label>
+                  <div class="cmd-touch-controls">
+                    <button type="button" class="cmd-touch-btn" data-touch-step="-1">−</button>
+                    <input type="number" name="cantidad" value="1" min="1" class="cmd-touch-input" data-touch-qty>
+                    <button type="button" class="cmd-touch-btn" data-touch-step="1">+</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="cmd-label">Notas</label>
+                  <textarea name="notas" class="cmd-touch-notes" placeholder="Sin hielo, termino medio, salsa aparte"></textarea>
+                </div>
+                <button type="submit" class="cmd-btn cmd-btn-primary" style="padding:10px 14px;">Agregar</button>
+              </div>
+            </div>
+            <div class="cmd-product-media">
+              {% if item.display_image_url %}
+              <img src="{{ item.display_image_url }}" alt="{{ item.nombre }}">
+              {% else %}
+              <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=900&q=80" alt="{{ item.nombre }}">
+              {% endif %}
+            </div>
+          </form>
+          {% endfor %}
+        </div>
+      </section>
+      {% empty %}
+      <div class="cmd-mini">No hay productos disponibles en la carta para cargar en esta comanda.</div>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <div class="cmd-card">
+    <div class="cmd-mini">Caja, tesoreria y administracion ven esta comanda en modo de revision. La propina se define solo al momento del pago.</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if can_edit_order and not pago %}
+<script>
+  document.documentElement.style.scrollBehavior = 'smooth';
+  document.querySelectorAll('[data-touch-step]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const wrapper = button.closest('.cmd-touch-controls');
+      const input = wrapper.querySelector('[data-touch-qty]');
+      const step = Number(button.dataset.touchStep || 0);
+      const current = Number(input.value || 1);
+      input.value = Math.max(1, current + step);
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

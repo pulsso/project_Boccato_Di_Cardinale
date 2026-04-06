@@ -39,6 +39,8 @@ def register_view(request):
             zone=form.cleaned_data['zone'],
             sector=form.cleaned_data['sector'],
             default_address=form.cleaned_data['default_address'],
+            mobile_phone=form.cleaned_data['mobile_phone'],
+            landline_phone=form.cleaned_data['landline_phone'],
         )
         login(request, user)
         messages.success(request, 'Cuenta creada exitosamente.')
