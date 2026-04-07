@@ -67,6 +67,15 @@ def _get_apertura_activa():
     )
 
 
+def _get_cierre_pendiente_para_usuario(user):
+    return (
+        CierreCaja.objects.filter(cajero=user, estado='pendiente')
+        .select_related('apertura', 'autorizador')
+        .order_by('-solicitado_at')
+        .first()
+    )
+
+
 # ── DASHBOARD CAJERO ────────────────────────────────────────
 
 @requiere_perfil_caja
@@ -76,6 +85,7 @@ def dashboard(request):
     apertura_activa_es_propia = bool(
         apertura_activa and apertura_activa.cajero_id == request.user.id
     )
+    cierre_pendiente = _get_cierre_pendiente_para_usuario(request.user)
 
     comandas_por_cobrar = Comanda.objects.filter(
         estado='cerrada'
@@ -101,6 +111,7 @@ def dashboard(request):
         'apertura_activa': apertura_activa,
         'apertura_activa_es_propia': apertura_activa_es_propia,
         'apertura_pendiente': apertura_pendiente,
+        'cierre_pendiente': cierre_pendiente,
         'comandas_por_cobrar': comandas_por_cobrar,
         'total_hoy': total_hoy,
         'propinas_hoy': propinas_hoy,
@@ -166,8 +177,16 @@ def solicitar_cierre(request, apertura_id):
     apertura = get_object_or_404(AperturaCaja, pk=apertura_id, estado='autorizada')
 
     if hasattr(apertura, 'cierre'):
-        messages.warning(request, 'Esta apertura ya tiene un cierre registrado.')
-        return redirect('caja:dashboard')
+        cierre_existente = apertura.cierre
+        if cierre_existente.estado == 'pendiente':
+            messages.warning(request, 'Esta caja ya tiene un cierre pendiente de autorizacion.')
+            return redirect('caja:dashboard')
+        if cierre_existente.estado == 'autorizado':
+            messages.warning(request, 'Esta apertura ya fue cerrada y autorizada.')
+            return redirect('caja:dashboard')
+        cierre = cierre_existente
+    else:
+        cierre = CierreCaja(apertura=apertura, cajero=request.user)
 
     pagos_apertura = Pago.objects.filter(apertura_caja=apertura, estado='aprobado')
     totales = {
@@ -180,16 +199,23 @@ def solicitar_cierre(request, apertura_id):
     total_esperado = sum(v for k, v in totales.items() if k != 'monto_propinas')
 
     if request.method == 'POST':
-        form = CierreCajaForm(request.POST)
+        form = CierreCajaForm(request.POST, instance=cierre)
         if form.is_valid():
             cierre = form.save(commit=False)
             cierre.apertura = apertura
             cierre.cajero = request.user
+            cierre.estado = 'pendiente'
+            cierre.autorizador = None
+            cierre.notas_rechazo = ''
+            cierre.autorizado_at = None
             cierre.save()
             messages.success(request, 'Solicitud de cierre enviada. Esperando autorizacion del Tesorero.')
             return redirect('caja:dashboard')
     else:
-        form = CierreCajaForm(initial=totales)
+        initial = totales
+        if cierre.pk:
+            initial['notas'] = cierre.notas
+        form = CierreCajaForm(instance=cierre if cierre.pk else None, initial=initial)
 
     return render(request, 'caja/cierre_form.html', {
         'form': form,
