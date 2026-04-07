@@ -56,11 +56,15 @@ def _get_ip(request):
 
 
 def _get_apertura_activa():
-    hoy = timezone.now().date()
-    return AperturaCaja.objects.filter(
-        estado='autorizada',
-        solicitada_at__date=hoy
-    ).exclude(cierre__isnull=False).first()
+    return (
+        AperturaCaja.objects.filter(
+            estado='autorizada',
+            cierre__isnull=True,
+        )
+        .select_related('cajero', 'autorizador')
+        .order_by('-autorizada_at', '-solicitada_at')
+        .first()
+    )
 
 
 # ── DASHBOARD CAJERO ────────────────────────────────────────
@@ -69,6 +73,9 @@ def _get_apertura_activa():
 def dashboard(request):
     hoy = timezone.now().date()
     apertura_activa = _get_apertura_activa()
+    apertura_activa_es_propia = bool(
+        apertura_activa and apertura_activa.cajero_id == request.user.id
+    )
 
     comandas_por_cobrar = Comanda.objects.filter(
         estado='cerrada'
@@ -83,12 +90,16 @@ def dashboard(request):
         total = pagos_hoy.filter(metodo=metodo).aggregate(t=Sum('monto_total'))['t'] or 0
         resumen_metodos[metodo] = {'label': label, 'total': total}
 
-    apertura_pendiente = AperturaCaja.objects.filter(
-        cajero=request.user, estado='pendiente'
-    ).first()
+    apertura_pendiente = (
+        AperturaCaja.objects.filter(cajero=request.user, estado='pendiente')
+        .select_related('autorizador')
+        .order_by('-solicitada_at')
+        .first()
+    )
 
     return render(request, 'caja/dashboard.html', {
         'apertura_activa': apertura_activa,
+        'apertura_activa_es_propia': apertura_activa_es_propia,
         'apertura_pendiente': apertura_pendiente,
         'comandas_por_cobrar': comandas_por_cobrar,
         'total_hoy': total_hoy,
@@ -103,14 +114,23 @@ def dashboard(request):
 
 @requiere_perfil_caja
 def solicitar_apertura(request):
-    hoy = timezone.now().date()
-    apertura_existente = AperturaCaja.objects.filter(
-        cajero=request.user,
-        solicitada_at__date=hoy
-    ).exclude(estado='rechazada').first()
+    apertura_activa = _get_apertura_activa()
+    if apertura_activa:
+        responsable = apertura_activa.cajero.get_full_name() or apertura_activa.cajero.username
+        if apertura_activa.cajero_id == request.user.id:
+            messages.warning(request, 'Tu caja ya se encuentra abierta y autorizada.')
+        else:
+            messages.warning(request, f'La caja ya esta abierta para {responsable}. Debe cerrarse antes de solicitar una nueva apertura.')
+        return redirect('caja:dashboard')
+
+    apertura_existente = (
+        AperturaCaja.objects.filter(cajero=request.user, estado='pendiente')
+        .order_by('-solicitada_at')
+        .first()
+    )
 
     if apertura_existente:
-        messages.warning(request, 'Ya existe una solicitud de apertura para hoy.')
+        messages.warning(request, 'Ya existe una solicitud de apertura pendiente para tu usuario.')
         return redirect('caja:dashboard')
 
     form = AperturaCajaForm(request.POST or None)
