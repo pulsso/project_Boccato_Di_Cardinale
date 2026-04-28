@@ -56,6 +56,10 @@ python manage.py runserver
 
 Copia `.env.example` a `.env` y ajusta las credenciales reales.
 
+Guia paso a paso para recuperar superusuario y publicar en Render:
+
+- `docs/superusuario_y_deploy.md`
+
 ### PostgreSQL por defecto
 
 ```env

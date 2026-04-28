@@ -1,8 +1,7 @@
-﻿# Virtual environments
+# Virtual environments
 venv/
 .venv/
 env/
-.python-version
 
 # Environment and secrets
 .env

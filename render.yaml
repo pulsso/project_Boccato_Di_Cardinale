@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: grupo-boccato-web
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: DEBUG
+        value: false
+      - key: USE_SQLITE
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: grupo-boccato-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://*.onrender.com
+      - key: SESSION_COOKIE_SECURE
+        value: true
+      - key: CSRF_COOKIE_SECURE
+        value: true
+      - key: SECURE_SSL_REDIRECT
+        value: true
+      - key: SECURE_HSTS_SECONDS
+        value: 31536000
+      - key: DB_SSL_REQUIRE
+        value: false
+
+databases:
+  - name: grupo-boccato-db
+    plan: free
+    region: oregon
+    databaseName: grupo_boccato
+    postgresMajorVersion: "18"

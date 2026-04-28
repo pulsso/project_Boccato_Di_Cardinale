@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
@@ -26,6 +27,14 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', '127.0.0.1,localhost')
 CSRF_TRUSTED_ORIGINS = get_env_list('CSRF_TRUSTED_ORIGINS')
 USE_SQLITE = get_env_bool('USE_SQLITE', False)
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+render_origin = f'https://{RENDER_EXTERNAL_HOSTNAME}' if RENDER_EXTERNAL_HOSTNAME else ''
+if render_origin and render_origin not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(render_origin)
 
 if not DEBUG and SECRET_KEY == 'django-insecure-change-me-in-production':
     raise ImproperlyConfigured('Define un SECRET_KEY real cuando DEBUG=False.')
@@ -54,6 +63,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'config.security.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,6 +94,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+database_url = os.getenv('DATABASE_URL', '').strip()
+
 if USE_SQLITE:
     DATABASES = {
         'default': {
@@ -91,6 +103,18 @@ if USE_SQLITE:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+elif database_url:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            database_url,
+            conn_max_age=int(os.getenv('DB_CONN_MAX_AGE', '60')),
+            ssl_require=get_env_bool('DB_SSL_REQUIRE', False),
+        )
+    }
+    DATABASES['default'].setdefault(
+        'OPTIONS',
+        {'connect_timeout': int(os.getenv('DB_CONNECT_TIMEOUT', '5'))},
+    )
 else:
     db_name = os.getenv('DB_NAME', '').strip()
     db_user = os.getenv('DB_USER', '').strip()
@@ -142,9 +166,22 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE_BACKEND = (
+    'django.contrib.staticfiles.storage.StaticFilesStorage'
+    if DEBUG
+    else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+)
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': STATICFILES_STORAGE_BACKEND,
+    },
+}
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
+MEDIA_ROOT = Path(os.getenv('MEDIA_ROOT', str(BASE_DIR / 'media')))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
