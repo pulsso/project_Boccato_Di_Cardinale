@@ -42,6 +42,9 @@ if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
 if VERCEL_URL and VERCEL_URL not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(VERCEL_URL)
 
+if IS_VERCEL and '.vercel.app' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.vercel.app')
+
 render_origin = f'https://{RENDER_EXTERNAL_HOSTNAME}' if RENDER_EXTERNAL_HOSTNAME else ''
 if render_origin and render_origin not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(render_origin)
@@ -49,6 +52,9 @@ if render_origin and render_origin not in CSRF_TRUSTED_ORIGINS:
 vercel_origin = f'https://{VERCEL_URL}' if VERCEL_URL else ''
 if vercel_origin and vercel_origin not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(vercel_origin)
+
+if IS_VERCEL and 'https://*.vercel.app' not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append('https://*.vercel.app')
 
 if not DEBUG and SECRET_KEY == 'django-insecure-change-me-in-production':
     raise ImproperlyConfigured('Define un SECRET_KEY real cuando DEBUG=False.')
@@ -205,6 +211,12 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+if IS_VERCEL and USE_SQLITE:
+    # En Vercel con SQLite de demo evitamos sesiones en BD, porque el
+    # filesystem del deployment es de solo lectura durante la ejecucion.
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+    MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = get_env_bool('SESSION_COOKIE_SECURE', not DEBUG)

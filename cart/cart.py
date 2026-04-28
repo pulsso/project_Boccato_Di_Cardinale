@@ -7,11 +7,12 @@ class Cart:
     def __init__(self, request):
         self.session = request.session
         cart = self.session.get(CART_SESSION_KEY)
-        if not cart:
-            cart = self.session[CART_SESSION_KEY] = {}
-        self.cart = cart
+        self.cart = cart or {}
 
     def add(self, product, quantity=1):
+        if CART_SESSION_KEY not in self.session:
+            self.session[CART_SESSION_KEY] = {}
+        self.cart = self.session[CART_SESSION_KEY]
         pid = str(product.id)
         if pid not in self.cart:
             self.cart[pid] = {
@@ -38,8 +39,10 @@ class Cart:
         self.session.modified = True
 
     def clear(self):
-        del self.session[CART_SESSION_KEY]
-        self.save()
+        if CART_SESSION_KEY in self.session:
+            del self.session[CART_SESSION_KEY]
+            self.cart = {}
+            self.save()
 
     def get_items(self):
         product_ids = self.cart.keys()
