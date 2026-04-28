@@ -27,14 +27,28 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', '127.0.0.1,localhost')
 CSRF_TRUSTED_ORIGINS = get_env_list('CSRF_TRUSTED_ORIGINS')
 USE_SQLITE = get_env_bool('USE_SQLITE', False)
+IS_VERCEL = os.getenv('VERCEL', '').strip() == '1'
+VERCEL_URL = os.getenv('VERCEL_URL', '').strip()
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+
+if IS_VERCEL and not USE_SQLITE:
+    # Fallback de demo para Vercel cuando no hay Postgres configurado.
+    # Sirve para visualizacion publica, pero no para datos persistentes.
+    USE_SQLITE = not os.getenv('DATABASE_URL', '').strip()
 
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+if VERCEL_URL and VERCEL_URL not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(VERCEL_URL)
+
 render_origin = f'https://{RENDER_EXTERNAL_HOSTNAME}' if RENDER_EXTERNAL_HOSTNAME else ''
 if render_origin and render_origin not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(render_origin)
+
+vercel_origin = f'https://{VERCEL_URL}' if VERCEL_URL else ''
+if vercel_origin and vercel_origin not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(vercel_origin)
 
 if not DEBUG and SECRET_KEY == 'django-insecure-change-me-in-production':
     raise ImproperlyConfigured('Define un SECRET_KEY real cuando DEBUG=False.')
